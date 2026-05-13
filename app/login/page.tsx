@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { ApiCallError, apiRequest } from '@/lib/api';
-import { useAdminAuthStore, type IAdminSessionUser } from '@/stores/admin-auth.store';
+import { mapAdminSessionUserFromApi } from '@/lib/map-admin-session-user';
+import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
 interface IAdminLoginResponse {
   accessToken: string;
@@ -14,22 +15,6 @@ interface IAdminLoginResponse {
     email: string;
     role: string;
     permissions: string[];
-  };
-}
-
-function mapSessionUser(raw: IAdminLoginResponse['user']): IAdminSessionUser {
-  let id = '';
-  if (typeof raw.id === 'string') {
-    id = raw.id;
-  } else if (raw.id && typeof raw.id === 'object' && '_id' in (raw.id as object)) {
-    id = String((raw.id as { _id: unknown })._id);
-  }
-  return {
-    id,
-    name: raw.name,
-    email: raw.email,
-    role: raw.role,
-    permissions: Array.isArray(raw.permissions) ? raw.permissions : [],
   };
 }
 
@@ -72,14 +57,14 @@ export default function LoginPage(): React.ReactElement {
         setError('Unexpected response from server.');
         return;
       }
-      if (payload.user.role !== 'admin') {
+      if (!["admin","superadmin"].includes(payload.user.role)) {
         setError('This console is only for school administrators.');
         return;
       }
       setSession({
         accessToken: payload.accessToken,
         refreshToken: payload.refreshToken,
-        user: mapSessionUser(payload.user),
+        user: mapAdminSessionUserFromApi(payload.user),
       });
       router.replace('/users');
     } catch (err: unknown) {

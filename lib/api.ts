@@ -1,5 +1,6 @@
 import { toast } from 'sonner';
 
+import { refreshAdminAccessToken, shouldAttemptAdminTokenRefresh } from '@/lib/admin-token-refresh';
 import { getApiBaseUrl } from '@/lib/env';
 
 export interface IApiSuccessEnvelope<T> {
@@ -45,17 +46,17 @@ function buildQueryString(query: Record<string, string | number | undefined> | u
   return s ? `?${s}` : '';
 }
 
-export async function apiRequest<T>(
-  path: string,
-  options: {
-    method?: string;
-    body?: unknown;
-    token?: string | null;
-    query?: Record<string, string | number | undefined>;
-    /** When true, failed requests do not open a global toast (e.g. best-effort logout). */
-    skipErrorToast?: boolean;
-  } = {},
-): Promise<IApiSuccessEnvelope<T>> {
+interface IApiRequestOptions {
+  method?: string;
+  body?: unknown;
+  token?: string | null;
+  query?: Record<string, string | number | undefined>;
+  /** When true, failed requests do not open a global toast (e.g. best-effort logout). */
+  skipErrorToast?: boolean;
+  _retryAfterRefresh?: boolean;
+}
+
+async function executeApiRequest<T>(path: string, options: IApiRequestOptions): Promise<IApiSuccessEnvelope<T>> {
   const base = getApiBaseUrl();
   const method = options.method ?? 'GET';
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
@@ -78,6 +79,17 @@ export async function apiRequest<T>(
   } catch {
     throw new ApiCallError('Invalid JSON response', response.status, null);
   }
+  const hadBearerToken = Boolean(options.token);
+  if (shouldAttemptAdminTokenRefresh(response.status, hadBearerToken, normalizedPath, Boolean(options._retryAfterRefresh))) {
+    const newAccess = await refreshAdminAccessToken();
+    if (newAccess) {
+      return executeApiRequest<T>(path, {
+        ...options,
+        token: newAccess,
+        _retryAfterRefresh: true,
+      });
+    }
+  }
   if (!response.ok || json.success === false) {
     const message =
       typeof json.message === 'string' && json.message.length > 0
@@ -89,4 +101,18 @@ export async function apiRequest<T>(
     throw new ApiCallError(message, response.status, json);
   }
   return json;
+}
+
+export async function apiRequest<T>(
+  path: string,
+  options: {
+    method?: string;
+    body?: unknown;
+    token?: string | null;
+    query?: Record<string, string | number | undefined>;
+    /** When true, failed requests do not open a global toast (e.g. best-effort logout). */
+    skipErrorToast?: boolean;
+  } = {},
+): Promise<IApiSuccessEnvelope<T>> {
+  return executeApiRequest<T>(path, options);
 }
