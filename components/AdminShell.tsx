@@ -84,6 +84,7 @@ export function AdminShell(props: IAdminShellProps): React.ReactElement | null {
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {navLink(adminRoute('/users'), 'Users')}
           {navLink(adminRoute('/roles'), 'Roles')}
+          {navLink(adminRoute('/tuition-inquiries'), 'Tuition inquiries')}
         </nav>
       </aside>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
