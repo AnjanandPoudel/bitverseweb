@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { ApiCallError, apiRequest, type IListMeta } from '@/lib/api';
+import { adminRoute } from '@/lib/routes';
 import { PaginationBar } from '@/components/PaginationBar';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
@@ -87,7 +88,7 @@ export default function RolesListPage(): React.ReactElement {
         >
           Apply
         </button>
-        <Link href="/roles/new" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+        <Link href={adminRoute('/roles/new')} className="btn btn-primary" style={{ textDecoration: 'none' }}>
           New role
         </Link>
       </div>
@@ -124,7 +125,7 @@ export default function RolesListPage(): React.ReactElement {
                   <td>{row.name}</td>
                   <td className="meta">{count} permission(s)</td>
                   <td>
-                    <Link href={`/roles/${encodeURIComponent(id)}`}>View</Link>
+                    <Link href={adminRoute(`/roles/${encodeURIComponent(id)}`)}>View</Link>
                   </td>
                 </tr>
               );

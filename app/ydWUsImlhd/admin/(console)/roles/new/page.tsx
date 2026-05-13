@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { ApiCallError, apiRequest } from '@/lib/api';
+import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
 interface IPermissionRow {
@@ -61,7 +62,7 @@ export default function NewRolePage(): React.ReactElement {
         token: accessToken,
         body: { name, permissionSlugs: [...selectedSlugs] },
       });
-      window.location.href = '/roles';
+      window.location.href = adminRoute('/roles');
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Could not create role.');
     } finally {
@@ -73,7 +74,7 @@ export default function NewRolePage(): React.ReactElement {
     <div>
       <h1 className="page-title">New role</h1>
       <p className="meta" style={{ marginBottom: '1rem' }}>
-        <Link href="/roles">← Back to roles</Link>
+        <Link href={adminRoute('/roles')}>← Back to roles</Link>
       </p>
       {error && <div className="error-banner">{error}</div>}
       <form className="panel" onSubmit={(event) => void onSubmit(event)} style={{ maxWidth: 720 }}>

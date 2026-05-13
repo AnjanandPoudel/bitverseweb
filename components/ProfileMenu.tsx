@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, type ReactElement } from 'react';
 import { apiRequest } from '@/lib/api';
+import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
 export function ProfileMenu(): ReactElement {
@@ -17,7 +18,7 @@ export function ProfileMenu(): ReactElement {
   const logout = async (): Promise<void> => {
     if (!refreshToken) {
       clearSession();
-      router.replace('/login');
+      router.replace(adminRoute('/login'));
       return;
     }
     setLoggingOut(true);
@@ -33,7 +34,7 @@ export function ProfileMenu(): ReactElement {
     } finally {
       clearSession();
       setLoggingOut(false);
-      router.replace('/login');
+      router.replace(adminRoute('/login'));
     }
   };
 

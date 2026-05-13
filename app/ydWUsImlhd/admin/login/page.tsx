@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { ApiCallError, apiRequest } from '@/lib/api';
 import { mapAdminSessionUserFromApi } from '@/lib/map-admin-session-user';
+import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
 interface IAdminLoginResponse {
@@ -39,7 +40,7 @@ export default function LoginPage(): React.ReactElement {
 
   useEffect(() => {
     if (hydrated && accessToken) {
-      router.replace('/users');
+      router.replace(adminRoute('/users'));
     }
   }, [accessToken, hydrated, router]);
 
@@ -57,7 +58,7 @@ export default function LoginPage(): React.ReactElement {
         setError('Unexpected response from server.');
         return;
       }
-      if (!["admin","superadmin"].includes(payload.user.role)) {
+      if (!['admin', 'superadmin'].includes(payload.user.role)) {
         setError('This console is only for school administrators.');
         return;
       }
@@ -66,7 +67,7 @@ export default function LoginPage(): React.ReactElement {
         refreshToken: payload.refreshToken,
         user: mapAdminSessionUserFromApi(payload.user),
       });
-      router.replace('/users');
+      router.replace(adminRoute('/users'));
     } catch (err: unknown) {
       const message = err instanceof ApiCallError ? err.message : 'Login failed.';
       setError(message);

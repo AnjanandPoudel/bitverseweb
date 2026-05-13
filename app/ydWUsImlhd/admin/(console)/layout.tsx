@@ -1,6 +1,6 @@
 import { AdminShell } from '@/components/AdminShell';
 
-export default function AdminSectionLayout({
+export default function AdminConsoleLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

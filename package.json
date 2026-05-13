@@ -1,5 +1,5 @@
 {
-  "name": "bitverse-academy-dashboard",
+  "name": "bitverse-academy-web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "luxon": "^3.7.2",
     "next": "15.5.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -16,6 +17,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@types/luxon": "^3.7.1",
     "@types/node": "^22.14.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

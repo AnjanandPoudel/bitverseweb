@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { ApiCallError, apiRequest, type IListMeta } from '@/lib/api';
 import { formatRoleLabel, userDocumentId } from '@/lib/format-user';
+import { adminRoute } from '@/lib/routes';
 import { PaginationBar } from '@/components/PaginationBar';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
@@ -84,7 +85,7 @@ export default function UsersListPage(): React.ReactElement {
         >
           Apply
         </button>
-        <Link href="/users/new" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+        <Link href={adminRoute('/users/new')} className="btn btn-primary" style={{ textDecoration: 'none' }}>
           New user
         </Link>
       </div>
@@ -130,7 +131,7 @@ export default function UsersListPage(): React.ReactElement {
                     )}
                   </td>
                   <td>
-                    <Link href={`/users/${encodeURIComponent(id)}`}>View</Link>
+                    <Link href={adminRoute(`/users/${encodeURIComponent(id)}`)}>View</Link>
                   </td>
                 </tr>
               );

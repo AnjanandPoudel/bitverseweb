@@ -751,9 +751,63 @@
         "tags": [
           "Users"
         ],
-        "summary": "List users",
+        "summary": "List users (paginated)",
         "description": "Requires JWT and user.view permission.",
         "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "minimum": {
+                  "type": "number",
+                  "example": 1
+                },
+                "default": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "minimum": {
+                  "type": "number",
+                  "example": 1
+                },
+                "maximum": {
+                  "type": "number",
+                  "example": 100
+                },
+                "default": {
+                  "type": "number",
+                  "example": 10
+                }
+              }
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by name or email (partial match)"
+          },
           {
             "name": "authorization",
             "in": "header",
@@ -1152,6 +1206,155 @@
       }
     },
     "/api/v1/users/{userId}": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update user (admin)",
+        "description": "Partial update including optional new password (hashed server-side). Cannot deactivate own account.",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Missing user.update permission"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "409": {
+            "description": "Email already in use"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "roleId": {
+                    "type": "string"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6,
+                    "writeOnly": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Deactivate user (admin)",
+        "description": "Sets isActive to false. Cannot target own account.",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deactivated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Missing user.delete permission"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
       "get": {
         "tags": [
           "Users"
@@ -1292,9 +1495,62 @@
         "tags": [
           "Roles"
         ],
-        "summary": "List roles",
-        "description": "Returns all roles with mapped permission slugs.",
+        "summary": "List roles (paginated)",
+        "description": "Returns roles with mapped permission slugs.",
         "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "minimum": {
+                  "type": "number",
+                  "example": 1
+                },
+                "default": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "minimum": {
+                  "type": "number",
+                  "example": 1
+                },
+                "maximum": {
+                  "type": "number",
+                  "example": 100
+                },
+                "default": {
+                  "type": "number",
+                  "example": 10
+                }
+              }
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "authorization",
             "in": "header",
@@ -1526,6 +1782,186 @@
             "bearerAuth": []
           }
         ]
+      }
+    },
+    "/api/v1/permissions/": {
+      "get": {
+        "tags": [
+          "Permissions"
+        ],
+        "summary": "List all permission slugs",
+        "description": "Returns every permission document for building role forms. Requires JWT and role.view.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Missing role.view permission"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tuition-inquiries/": {
+      "post": {
+        "tags": [
+          "Tuition inquiries"
+        ],
+        "summary": "Submit public tuition inquiry",
+        "description": "Stores an online tuition lead from the public website form (no authentication).",
+        "responses": {
+          "201": {
+            "description": "Inquiry stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Not used"
+          },
+          "403": {
+            "description": "Not used"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "parentFullName",
+                  "studentFullNames",
+                  "studentAge",
+                  "studentClass",
+                  "subjects",
+                  "preferredStartAt",
+                  "ianaTimeZone",
+                  "countrySlug",
+                  "availableDays",
+                  "messengerNumber"
+                ],
+                "properties": {
+                  "parentFullName": {
+                    "type": "string",
+                    "example": "Jane Doe"
+                  },
+                  "studentFullNames": {
+                    "type": "string",
+                    "example": "Alex Doe"
+                  },
+                  "studentAge": {
+                    "type": "string",
+                    "example": "12"
+                  },
+                  "studentClass": {
+                    "type": "string",
+                    "example": "Grade 6"
+                  },
+                  "subjects": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "English",
+                        "Nepali",
+                        "Math",
+                        "Science",
+                        "Other"
+                      ]
+                    },
+                    "example": [
+                      "English",
+                      "Math"
+                    ]
+                  },
+                  "subjectsOther": {
+                    "type": "string",
+                    "example": "Social studies"
+                  },
+                  "preferredStartAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2026-05-20T08:00:00.000Z",
+                    "description": "UTC instant for the preferred first session, as ISO 8601."
+                  },
+                  "ianaTimeZone": {
+                    "type": "string",
+                    "example": "Asia/Tokyo",
+                    "description": "IANA time zone for the local wall time the parent chose."
+                  },
+                  "countrySlug": {
+                    "type": "string",
+                    "example": "japan",
+                    "description": "Country slug from the landing page URL."
+                  },
+                  "availableDays": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "Sunday",
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday"
+                      ]
+                    },
+                    "example": [
+                      "Saturday",
+                      "Sunday"
+                    ]
+                  },
+                  "messengerNumber": {
+                    "type": "string",
+                    "example": "+81 90 1234 5678"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   },

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ApiCallError, apiRequest } from '@/lib/api';
+import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
 interface IPermissionRow {
@@ -133,7 +134,7 @@ export default function RoleDetailPage(): React.ReactElement {
         method: 'DELETE',
         token: accessToken,
       });
-      router.push('/roles');
+      router.push(adminRoute('/roles'));
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Delete failed.');
     } finally {
@@ -145,7 +146,7 @@ export default function RoleDetailPage(): React.ReactElement {
     <div>
       <h1 className="page-title">Edit role</h1>
       <p className="meta" style={{ marginBottom: '1rem' }}>
-        <Link href="/roles">← Back to roles</Link>
+        <Link href={adminRoute('/roles')}>← Back to roles</Link>
         {role ? (
           <>
             {' · '}

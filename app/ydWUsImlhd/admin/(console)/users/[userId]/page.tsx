@@ -5,6 +5,7 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ApiCallError, apiRequest } from '@/lib/api';
 import { formatRoleLabel, roleObjectId, userDocumentId } from '@/lib/format-user';
+import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
 interface IUserDetail {
@@ -144,7 +145,7 @@ export default function UserDetailPage(): React.ReactElement {
         method: 'DELETE',
         token: accessToken,
       });
-      router.push('/users');
+      router.push(adminRoute('/users'));
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Deactivate failed.');
     } finally {
@@ -158,7 +159,7 @@ export default function UserDetailPage(): React.ReactElement {
     <div>
       <h1 className="page-title">Edit user</h1>
       <p className="meta" style={{ marginBottom: '1rem' }}>
-        <Link href="/users">← Back to users</Link>
+        <Link href={adminRoute('/users')}>← Back to users</Link>
         {user ? (
           <>
             {' · '}

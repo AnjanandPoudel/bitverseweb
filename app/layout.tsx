@@ -3,8 +3,8 @@ import { AppToaster } from '@/components/AppToaster';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Bitverse Academy — Admin',
-  description: 'School administration console',
+  title: 'Bitverse Academy',
+  description: 'Online tuition for students and school tools.',
 };
 
 export default function RootLayout({

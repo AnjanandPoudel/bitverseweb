@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
+import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 import { ProfileMenu } from '@/components/ProfileMenu';
 
@@ -32,7 +33,7 @@ export function AdminShell(props: IAdminShellProps): React.ReactElement | null {
       return;
     }
     if (!accessToken) {
-      router.replace('/login');
+      router.replace(adminRoute('/login'));
     }
   }, [accessToken, hydrated, router]);
 
@@ -81,8 +82,8 @@ export function AdminShell(props: IAdminShellProps): React.ReactElement | null {
       >
         <div style={{ fontWeight: 700, marginBottom: '1rem', fontSize: '0.95rem' }}>Administration</div>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {navLink('/users', 'Users')}
-          {navLink('/roles', 'Roles')}
+          {navLink(adminRoute('/users'), 'Users')}
+          {navLink(adminRoute('/roles'), 'Roles')}
         </nav>
       </aside>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>

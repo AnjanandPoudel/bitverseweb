@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
-import { ApiCallError, apiRequest, type IListMeta } from '@/lib/api';
+import { ApiCallError, apiRequest } from '@/lib/api';
+import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
 interface IRoleOption {
@@ -64,7 +65,7 @@ export default function NewUserPage(): React.ReactElement {
           phone: phone.trim().length > 0 ? phone : undefined,
         },
       });
-      window.location.href = '/users';
+      window.location.href = adminRoute('/users');
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Could not create user.');
     } finally {
@@ -76,7 +77,7 @@ export default function NewUserPage(): React.ReactElement {
     <div>
       <h1 className="page-title">New user</h1>
       <p className="meta" style={{ marginBottom: '1rem' }}>
-        <Link href="/users">← Back to users</Link>
+        <Link href={adminRoute('/users')}>← Back to users</Link>
       </p>
       {error && <div className="error-banner">{error}</div>}
       <form className="panel" onSubmit={(event) => void onSubmit(event)} style={{ maxWidth: 480 }}>
