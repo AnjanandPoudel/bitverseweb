@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { ApiCallError, apiRequest } from '@/lib/api';
+import { toastApiSuccess } from '@/lib/mutation-feedback';
 import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
@@ -54,7 +55,7 @@ export default function NewUserPage(): React.ReactElement {
     setError(null);
     setLoading(true);
     try {
-      await apiRequest<unknown>('/users', {
+      const envelope = await apiRequest<unknown>('/users', {
         method: 'POST',
         token: accessToken,
         body: {
@@ -65,7 +66,10 @@ export default function NewUserPage(): React.ReactElement {
           phone: phone.trim().length > 0 ? phone : undefined,
         },
       });
-      window.location.href = adminRoute('/users');
+      toastApiSuccess(envelope, 'User created.');
+      window.setTimeout(() => {
+        window.location.href = adminRoute('/users');
+      }, 600);
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Could not create user.');
     } finally {

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ApiCallError, apiRequest } from '@/lib/api';
+import { toastApiSuccess } from '@/lib/mutation-feedback';
 import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
@@ -107,11 +108,12 @@ export default function RoleDetailPage(): React.ReactElement {
     setSaving(true);
     setError(null);
     try {
-      await apiRequest<IRoleDetail>(`/roles/${encodeURIComponent(roleIdParam)}`, {
+      const envelope = await apiRequest<IRoleDetail>(`/roles/${encodeURIComponent(roleIdParam)}`, {
         method: 'PATCH',
         token: accessToken,
         body: { name, permissionSlugs: [...selectedSlugs] },
       });
+      toastApiSuccess(envelope, 'Role updated.');
       await loadRole();
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Save failed.');
@@ -130,10 +132,11 @@ export default function RoleDetailPage(): React.ReactElement {
     setSaving(true);
     setError(null);
     try {
-      await apiRequest<unknown>(`/roles/${encodeURIComponent(roleIdParam)}`, {
+      const envelope = await apiRequest<unknown>(`/roles/${encodeURIComponent(roleIdParam)}`, {
         method: 'DELETE',
         token: accessToken,
       });
+      toastApiSuccess(envelope, 'Role deleted.');
       router.push(adminRoute('/roles'));
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Delete failed.');

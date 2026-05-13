@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { ApiCallError, apiRequest } from '@/lib/api';
+import { toastApiSuccess } from '@/lib/mutation-feedback';
 import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
@@ -57,12 +58,15 @@ export default function NewRolePage(): React.ReactElement {
     setLoading(true);
     setError(null);
     try {
-      await apiRequest<unknown>('/roles', {
+      const envelope = await apiRequest<unknown>('/roles', {
         method: 'POST',
         token: accessToken,
         body: { name, permissionSlugs: [...selectedSlugs] },
       });
-      window.location.href = adminRoute('/roles');
+      toastApiSuccess(envelope, 'Role created.');
+      window.setTimeout(() => {
+        window.location.href = adminRoute('/roles');
+      }, 600);
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Could not create role.');
     } finally {

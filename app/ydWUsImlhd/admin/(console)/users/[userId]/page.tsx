@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ApiCallError, apiRequest } from '@/lib/api';
+import { toastApiSuccess } from '@/lib/mutation-feedback';
 import { formatRoleLabel, roleObjectId, userDocumentId } from '@/lib/format-user';
 import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
@@ -117,11 +118,12 @@ export default function UserDetailPage(): React.ReactElement {
       if (newPassword.trim().length > 0) {
         body.password = newPassword;
       }
-      await apiRequest<IUserDetail>(`/users/${encodeURIComponent(userId)}`, {
+      const envelope = await apiRequest<IUserDetail>(`/users/${encodeURIComponent(userId)}`, {
         method: 'PATCH',
         token: accessToken,
         body,
       });
+      toastApiSuccess(envelope, 'User updated.');
       setNewPassword('');
       await loadUser();
     } catch (err: unknown) {
@@ -141,10 +143,11 @@ export default function UserDetailPage(): React.ReactElement {
     setSaving(true);
     setError(null);
     try {
-      await apiRequest<unknown>(`/users/${encodeURIComponent(userId)}`, {
+      const envelope = await apiRequest<unknown>(`/users/${encodeURIComponent(userId)}`, {
         method: 'DELETE',
         token: accessToken,
       });
+      toastApiSuccess(envelope, 'User deactivated.');
       router.push(adminRoute('/users'));
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Deactivate failed.');

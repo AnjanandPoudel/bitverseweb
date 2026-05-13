@@ -214,26 +214,30 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
             message to staff when they contact you.</span>
           ) : null}
         </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-          <div style={{ flex: '1 1 140px' }}>
-            <label htmlFor="preferred-date">Date</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{flexDirection: 'column' }}>
+            <label htmlFor="preferred-date">Starting From</label>
             <input
               id="preferred-date"
               type="date"
               value={preferredDate}
               min={minPreferredDate}
               onChange={(event) => setPreferredDate(event.target.value)}
+              onClick={(e) => e.currentTarget.showPicker()}
               required
+              style={{backgroundColor: 'white', color: 'navy', border: '1px solid #2d3a4a' , margin:'0.5rem', padding:'0.5rem 0.65rem'}}
             />
           </div>
-          <div style={{ flex: '1 1 120px' }}>
-            <label htmlFor="preferred-wall-time">Time</label>
+          <div style={{flexDirection: 'column' }}>
+            <label htmlFor="preferred-wall-time">Availability Time</label>
             <input
               id="preferred-wall-time"
               type="time"
               value={preferredWallTime}
               onChange={(event) => setPreferredWallTime(event.target.value)}
               required
+              onClick={(e) => e.currentTarget.showPicker()}
+              style={{backgroundColor: 'white', color: 'navy', border: '1px solid #2d3a4a' , margin:'0.5rem', padding:'0.5rem 0.65rem'}}
             />
           </div>
         </div>

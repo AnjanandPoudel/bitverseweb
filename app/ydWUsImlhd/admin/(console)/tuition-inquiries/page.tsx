@@ -30,6 +30,21 @@ function inquiryRowId(row: ITuitionInquiryRow): string {
   return typeof row._id === 'string' ? row._id : '';
 }
 
+const statusColor = (status: TuitionInquiryStatusValue): string | undefined => {
+  switch (status) {
+    case 'new_request':
+      return 'orange';
+    case 'contacting_parent':
+      return 'yellow';
+    case 'negotiating':
+      return 'skyblue';
+    case 'finalized':
+      return 'lightgreen';
+    case 'closed_without_deal':
+      return 'red';
+  }
+};
+
 export default function TuitionInquiriesListPage(): React.ReactElement {
   const accessToken = useAdminAuthStore((state) => state.accessToken);
   const [items, setItems] = useState<ITuitionInquiryRow[]>([]);
@@ -94,6 +109,7 @@ export default function TuitionInquiriesListPage(): React.ReactElement {
           <select
             id="inq-status"
             value={statusFilter}
+            style={{ color: statusColor(statusFilter as TuitionInquiryStatusValue), border: '1px solid #2d3a4a', margin: '0.5rem', padding: '0.5rem 0.65rem' }}
             onChange={(event) => {
               setStatusFilter(event.target.value as TuitionInquiryStatusValue | '');
               setPage(1);
@@ -158,7 +174,7 @@ export default function TuitionInquiriesListPage(): React.ReactElement {
                   <td>{row.parentFullName}</td>
                   <td>{row.messengerNumber}</td>
                   <td>
-                    <span className="badge badge-ok">{tuitionInquiryStatusLabel(statusKey)}</span>
+                    <span className="badge badge-ok" style={{ color: statusColor(statusKey as TuitionInquiryStatusValue) }}>{tuitionInquiryStatusLabel(statusKey)}</span>
                   </td>
                   <td className="meta">{createdLabel}</td>
                   <td>

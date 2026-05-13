@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ApiCallError, apiRequest } from '@/lib/api';
+import { toastApiSuccess } from '@/lib/mutation-feedback';
 import { adminRoute } from '@/lib/routes';
 import {
   TUITION_INQUIRY_STATUSES,
@@ -96,11 +97,12 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
     setSaving(true);
     setError(null);
     try {
-      await apiRequest<ITuitionInquiryDetail>(`/tuition-inquiries/${encodeURIComponent(inquiryId)}`, {
+      const envelope = await apiRequest<ITuitionInquiryDetail>(`/tuition-inquiries/${encodeURIComponent(inquiryId)}`, {
         method: 'PATCH',
         token: accessToken,
         body: { status, adminNotes },
       });
+      toastApiSuccess(envelope, 'Tuition inquiry updated.');
       await loadInquiry();
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Save failed.');
@@ -119,10 +121,11 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
     setSaving(true);
     setError(null);
     try {
-      await apiRequest<unknown>(`/tuition-inquiries/${encodeURIComponent(inquiryId)}`, {
+      const envelope = await apiRequest<unknown>(`/tuition-inquiries/${encodeURIComponent(inquiryId)}`, {
         method: 'DELETE',
         token: accessToken,
       });
+      toastApiSuccess(envelope, 'Tuition inquiry deleted.');
       router.push(adminRoute('/tuition-inquiries'));
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Delete failed.');

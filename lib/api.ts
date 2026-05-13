@@ -72,11 +72,22 @@ async function executeApiRequest<T>(path: string, options: IApiRequestOptions): 
     headers['Content-Type'] = 'application/json';
     body = JSON.stringify(options.body);
   }
-  const response = await fetch(url, { method, headers, body });
+  let response: Response;
+  try {
+    response = await fetch(url, { method, headers, body });
+  } catch {
+    if (!options.skipErrorToast && typeof window !== 'undefined') {
+      toast.error('Network error. Check your connection and try again.');
+    }
+    throw new ApiCallError('Network error', 0, null);
+  }
   let json: IApiSuccessEnvelope<T>;
   try {
     json = (await response.json()) as IApiSuccessEnvelope<T>;
   } catch {
+    if (!options.skipErrorToast && typeof window !== 'undefined') {
+      toast.error('Could not read the server response.');
+    }
     throw new ApiCallError('Invalid JSON response', response.status, null);
   }
   const hadBearerToken = Boolean(options.token);
