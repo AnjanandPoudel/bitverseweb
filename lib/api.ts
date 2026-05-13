@@ -1,0 +1,92 @@
+import { toast } from 'sonner';
+
+import { getApiBaseUrl } from '@/lib/env';
+
+export interface IApiSuccessEnvelope<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  meta?: IListMeta;
+  errors?: unknown;
+}
+
+export interface IListMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export class ApiCallError extends Error {
+  public readonly status: number;
+
+  public readonly payload: unknown;
+
+  public constructor(message: string, status: number, payload: unknown) {
+    super(message);
+    this.name = 'ApiCallError';
+    this.status = status;
+    this.payload = payload;
+  }
+}
+
+function buildQueryString(query: Record<string, string | number | undefined> | undefined): string {
+  if (!query) {
+    return '';
+  }
+  const params = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value === undefined || value === '') {
+      return;
+    }
+    params.set(key, String(value));
+  });
+  const s = params.toString();
+  return s ? `?${s}` : '';
+}
+
+export async function apiRequest<T>(
+  path: string,
+  options: {
+    method?: string;
+    body?: unknown;
+    token?: string | null;
+    query?: Record<string, string | number | undefined>;
+    /** When true, failed requests do not open a global toast (e.g. best-effort logout). */
+    skipErrorToast?: boolean;
+  } = {},
+): Promise<IApiSuccessEnvelope<T>> {
+  const base = getApiBaseUrl();
+  const method = options.method ?? 'GET';
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const url = `${base}/api/v1${normalizedPath}${buildQueryString(options.query)}`;
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+  };
+  if (options.token) {
+    headers.Authorization = `Bearer ${options.token}`;
+  }
+  let body: string | undefined;
+  if (options.body !== undefined && method !== 'GET' && method !== 'HEAD') {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(options.body);
+  }
+  const response = await fetch(url, { method, headers, body });
+  let json: IApiSuccessEnvelope<T>;
+  try {
+    json = (await response.json()) as IApiSuccessEnvelope<T>;
+  } catch {
+    throw new ApiCallError('Invalid JSON response', response.status, null);
+  }
+  if (!response.ok || json.success === false) {
+    const message =
+      typeof json.message === 'string' && json.message.length > 0
+        ? json.message
+        : `Request failed (${response.status})`;
+    if (!options.skipErrorToast && typeof window !== 'undefined') {
+      toast.error(message);
+    }
+    throw new ApiCallError(message, response.status, json);
+  }
+  return json;
+}
