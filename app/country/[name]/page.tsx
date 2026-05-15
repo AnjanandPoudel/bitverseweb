@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { TuitionInquiryForm } from '@/components/TuitionInquiryForm';
 import { ADMIN_CONSOLE_BASE_PATH } from '@/lib/routes';
@@ -20,7 +21,16 @@ export default async function PublicHomePage({
       <header className="public-header">
         <div className="public-header-inner">
 
-          <span className="public-brand">Bitverse Academy {name[0].toUpperCase() + name.slice(1)}</span>
+          <span className="public-brand">
+            <Image
+              src="/logo.jpeg"
+              alt="Bitverse Technologies"
+              width={36}
+              height={36}
+              style={{ borderRadius: '6px', objectFit: 'contain' }}
+            />
+            Bitverse Academy {name[0].toUpperCase() + name.slice(1)}
+          </span>
           <Link href={`${ADMIN_CONSOLE_BASE_PATH}/login`} className="btn public-admin-link">
             Staff sign in
           </Link>
