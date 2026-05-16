@@ -57,15 +57,15 @@ export default function EnrollDropdown({ text }: { text: string }): React.ReactE
           }}
         >
           <option value="" disabled>Select your country</option>
-          <option value="nepal">Nepal</option>
-          <option value="india">India</option>
           <option value="japan">Japan</option>
+          {/* <option value="india">India</option> */}
           <option value="canada">Canada</option>
           <option value="australia">Australia</option>
-          <option value="germany">Germany</option>
           <option value="uk">United Kingdom</option>
           <option value="usa">United States</option>
-          <option value="other">Other</option>
+          <option value="south-korea">South Korea</option>
+          <option value="nepal">Nepal</option>
+          <option value="other">Others</option>
         </select>
 
         <button
@@ -83,7 +83,7 @@ export default function EnrollDropdown({ text }: { text: string }): React.ReactE
             fontWeight: '600'
           }}
         >
-          Enroll Now
+          {text}
         </button>
       </div>
 

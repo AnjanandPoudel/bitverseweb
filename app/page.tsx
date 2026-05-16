@@ -6,9 +6,9 @@ import Link from 'next/link';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
-  title: 'Bitverse Tuition — Online Tutoring for Abroad Students',
+  title: 'Bitverse Academy — Online Tutoring for Abroad Students',
   description:
-    'Bitverse Tuition connects Nepali students abroad with experienced teachers for online classes (Grades 1–10). One-to-one and small-batch sessions in Math, Science, English, Nepali, Computer, and more.',
+    'Bitverse Academy connects Nepali students abroad with experienced teachers for online classes (Grades Nursery–10). One-to-one and small-batch sessions in Math, Science, English, Nepali, Computer, and more.',
 };
 
 const SUBJECTS = [
@@ -29,30 +29,6 @@ const WHY_CHOOSE = [
   { icon: '🆓', title: '3-Day Free Trial', desc: 'Experience our teaching quality before you commit — completely free, no obligation.' },
 ];
 
-const ONLINE_PROGRAMS = [
-  {
-    title: 'Primary Online',
-    range: 'Grades 1 – 4',
-    color: 'lp-prog-green',
-    tag: 'One-to-One',
-    subjects: ['Homework Support', 'All Core Subjects', 'Nepali & English', 'Interactive Activities'],
-  },
-  {
-    title: 'Middle School Online',
-    range: 'Grades 5 – 7',
-    color: 'lp-prog-blue',
-    tag: 'Small Batch / 1-to-1',
-    subjects: ['Math & Science', 'English & Nepali', 'Computer', 'Social Studies'],
-  },
-  {
-    title: 'High School Online',
-    range: 'Grades 8 – 10',
-    color: 'lp-prog-purple',
-    tag: 'Small Batch / 1-to-1',
-    subjects: ['Math & Science', 'Optional Mathematics', 'Computer', 'Account'],
-  },
-];
-
 const TIMINGS = [
   { session: 'Morning (NPT)', time: '7:00 – 9:00 AM', icon: '🌅' },
   { session: 'Evening (NPT)', time: '5:00 – 7:00 PM', icon: '🌆' },
@@ -65,12 +41,11 @@ export default function LandingPage(): React.ReactElement {
       <header className="lp-nav">
         <div className="lp-nav-inner">
           <Link href="/" className="lp-logo-link">
-            <Image src="/logo.jpeg" alt="Bitverse Tuition" width={48} height={48} className="lp-logo-img" />
-            <span className="lp-logo-text hidden-on-mobile">Bitverse <span className="lp-logo-accent">Tuition</span></span>
+            <Image src="/logo.jpeg" alt="Bitverse Academy" width={48} height={48} className="lp-logo-img" />
+            <span className="lp-logo-text hidden-on-mobile">Bitverse <span className="lp-logo-accent">Academy</span></span>
           </Link>
           <nav className="lp-nav-links">
             <a href="#why-us">Why Us</a>
-            <a href="#programs">Programs</a>
             <a href="#timings">Timings</a>
             <a href="#contact">Contact</a>
           </nav>
@@ -82,8 +57,8 @@ export default function LandingPage(): React.ReactElement {
       <section className="lp-hero">
         <div className="lp-hero-bg">
           <Image
-            src="/coverimage.png"
-            alt="Bitverse online tuition for students abroad"
+            src="/logo.jpeg"
+            alt="Bitverse Academy online classes for students abroad"
             fill
             className="lp-hero-img"
             priority
@@ -91,19 +66,18 @@ export default function LandingPage(): React.ReactElement {
           <div className="lp-hero-overlay" />
         </div>
         <div className="lp-hero-content">
-          <span className="lp-hero-badge">Online Classes · Grades 1 – 10 · Study from Anywhere</span>
+          <span className="lp-hero-badge">Online Classes · Grades (Nursery – 10) · Study from Anywhere</span>
           <h1 className="lp-hero-title">
             Personal Attention,<br />
             <span className="lp-hero-title-accent">Real Results</span>
           </h1>
           <p className="lp-hero-subtitle">
-            Bitverse Tuition brings experienced Nepali teachers directly to students living abroad — through live, one-to-one and small-batch online classes. Flexible timings, weekly reports, and a free 3-day trial.
+            Bitverse Academy brings experienced Nepali teachers directly to students living abroad — through live, one-to-one and small-batch online classes. Flexible timings, weekly reports, and a free 3-day trial.
           </p>
           <div className="lp-hero-actions">
             <div className="btn btn-primary">
               <EnrollDropdown text="Start Free Trial" />
             </div>
-            <a href="#programs" className="btn lp-btn-lg lp-btn-ghost">View Programs</a>
           </div>
           <div className="lp-hero-phones">
             <a href="tel:9846940545">📞 9846940545</a>
@@ -272,56 +246,43 @@ export default function LandingPage(): React.ReactElement {
         </div>
       </section>
 
-      {/* ── ONLINE PROGRAMS ── */}
-      <section className="lp-section" id="programs">
-        <div className="lp-container">
-          <div className="lp-section-label">Our Programs</div>
-          <h2 className="lp-section-title">Online Classes for Every Grade — Wherever You Are</h2>
-          <h2 className="lp-section-subtitle">Flexible Timings to Suit Your Time Zone (Online study at any time you want)</h2>
-          <p className="lp-section-sub" style={{ marginBottom: '0' }}>
-            All programs are delivered live over video call, following the Nepal school curriculum so your child stays on track regardless of which country they're in.
-          </p>
-          <div className="lp-programs-grid">
-            {ONLINE_PROGRAMS.map(({ title, range, color, tag, subjects }) => (
-              <div key={range} className={`lp-program-card panel ${color}`}>
-                <div>
-                  <span className="lp-program-tag">{tag}</span>
-                  <h3 className="lp-program-range">{range}</h3>
-                  <p className="lp-program-title-label">{title}</p>
-                </div>
-                <ul className="lp-program-list">
-                  {subjects.map((s) => (
-                    <li key={s}>{s}</li>
-                  ))}
-                </ul>
-                <a href="tel:9846940545" className="btn btn-primary lp-program-btn">Enquire</a>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── TIMINGS ── */}
-      {/* <section className="lp-section lp-timings-section" id="timings">
-        <div className="lp-container">
-          <div className="lp-section-label">Class Schedule</div>
-          <h2 className="lp-section-title">Flexible Timings to Suit Your Time Zone</h2>
-          <div className="lp-timings-grid">
-            {TIMINGS.map(({ session, time, icon }) => (
-              <div key={session} className="lp-timing-card panel">
-                <span className="lp-timing-icon">{icon}</span>
-                <div>
-                  <div className="lp-timing-session">{session}</div>
-                  <div className="lp-timing-time">{time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="lp-timings-note">
-            All times shown in Nepal Standard Time (NPT, UTC+5:45). Custom timings can be arranged to suit students in different countries — just ask when you enquire.
-          </p>
+      <section className="lp-section lp-timings-section" id="timings">
+  <div className="lp-container">
+    <div className="lp-section-label">Class Schedule</div>
+    <h2 className="lp-section-title">Flexible Batches Designed for Working Parents</h2>
+    
+    <div className="lp-timings-grid">
+      <div className="lp-timing-card panel">
+        <span className="lp-timing-icon">🌅</span>
+        <div>
+          <div className="lp-timing-session">Morning Batches</div>
+          <div className="lp-timing-time">Before school & work routines begin</div>
         </div>
-      </section> */}
+      </div>
+
+      <div className="lp-timing-card panel">
+        <span className="lp-timing-icon">🌆</span>
+        <div>
+          <div className="lp-timing-session">After-School & Evening Batches</div>
+          <div className="lp-timing-time">Perfect for winding down after the day ends</div>.
+        </div>
+      </div>
+
+      <div className="lp-timing-card panel">
+        <span className="lp-timing-icon">🗓️</span>
+        <div>
+          <div className="lp-timing-session">Weekend Sessions</div>
+          <div className="lp-timing-time">Dedicated time slots for deeper learning</div>
+        </div>
+      </div>
+    </div>
+
+    <p className="lp-timings-time">
+      We structure our classes entirely around <strong>parent availability and your child's specific routine</strong>.
+    </p>
+  </div>
+</section>
 
       {/* ── CONTACT ── */}
       <section className="lp-section lp-contact-section" id="contact">
@@ -390,8 +351,8 @@ export default function LandingPage(): React.ReactElement {
       <footer className="lp-footer">
         <div className="lp-container lp-footer-inner">
           <div className="lp-footer-brand">
-            <Image src="/logo.jpeg" alt="Bitverse Tuition" width={36} height={36} className="lp-logo-img" />
-            <span>Bitverse Tuition</span>
+            <Image src="/logo.jpeg" alt="Bitverse Academy" width={36} height={36} className="lp-logo-img" />
+            <span>Bitverse Academy</span>
           </div>
           <p className="lp-footer-tagline">Personal Attention, Real Results — Online</p>
           <div className="lp-footer-links">
@@ -401,7 +362,7 @@ export default function LandingPage(): React.ReactElement {
             <a href="tel:9846940545">9846940545</a>
           </div>
           <p className="lp-footer-location">📍 Shishuwa, Naubise, Nepal</p>
-          <p className="lp-footer-copy">© {new Date().getFullYear()} Bitverse Tuition. All rights reserved.</p>
+          <p className="lp-footer-copy">© {new Date().getFullYear()} Bitverse Academy. All rights reserved.</p>
         </div>
       </footer>
     </div>
