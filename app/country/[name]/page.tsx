@@ -44,7 +44,7 @@ export default async function PublicHomePage({
             Math, Science, and many more.
           </p>
           <ul className="tuition-bullet-list">
-            <li>Experienced teachers in {name[0].toUpperCase() + name.slice(1)}</li>
+            <li>Experienced teachers</li>
             <li>Flexible timing ( {name[0].toUpperCase() + name.slice(1)} Time)</li>
             <li>3 days free trial class</li>
           </ul>

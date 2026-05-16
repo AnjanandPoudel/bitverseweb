@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState, type ReactElement } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { ApiCallError } from '@/lib/api';
 import { resolveIanaTimeZoneForCountrySlug } from '@/lib/country-tuition-timezones';
 import {
@@ -10,6 +10,77 @@ import {
   type TTuitionDayOption,
   type TTuitionSubjectOption,
 } from '@/lib/tuition-inquiry.client';
+
+interface IConfettiPiece {
+  id: number;
+  x: number;
+  color: string;
+  delay: number;
+  duration: number;
+  size: number;
+}
+
+const CONFETTI_COLORS = ['#22c55e', '#16a34a', '#4ade80', '#facc15', '#fb923c', '#60a5fa', '#a78bfa', '#f472b6'];
+
+function SuccessModal({ onClose }: { onClose: () => void }): ReactElement {
+  const [pieces, setPieces] = useState<IConfettiPiece[]>([]);
+  const hasGenerated = useRef(false);
+
+  useEffect(() => {
+    if (hasGenerated.current) return;
+    hasGenerated.current = true;
+    const generated: IConfettiPiece[] = Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      delay: Math.random() * 0.8,
+      duration: 1.4 + Math.random() * 1.2,
+      size: 6 + Math.random() * 8,
+    }));
+    setPieces(generated);
+  }, []);
+
+  return (
+    <div className="success-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
+      <div className="success-modal-confetti" aria-hidden="true">
+        {pieces.map((piece) => (
+          <span
+            key={piece.id}
+            className="confetti-piece"
+            style={{
+              left: `${piece.x}%`,
+              backgroundColor: piece.color,
+              animationDelay: `${piece.delay}s`,
+              animationDuration: `${piece.duration}s`,
+              width: `${piece.size}px`,
+              height: `${piece.size}px`,
+            }}
+          />
+        ))}
+      </div>
+      <div className="success-modal-card">
+        <div className="success-modal-icon" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="32" r="30" stroke="#22c55e" strokeWidth="4" fill="#f0fdf4" className="success-circle" />
+            <path
+              d="M18 33l10 10 18-18"
+              stroke="#22c55e"
+              strokeWidth="4.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="success-check"
+            />
+          </svg>
+        </div>
+        <h2 id="success-modal-title" className="success-modal-title">Submitted!</h2>
+        <p className="success-modal-message">Thank you. We will contact you shortly.</p>
+        <button type="button" className="btn btn-primary success-modal-ok" onClick={onClose}>
+          OK
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function toggleInList<T extends string>(list: T[], value: T): T[] {
   if (list.includes(value)) {
@@ -53,13 +124,12 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
   const [availableDays, setAvailableDays] = useState<TTuitionDayOption[]>([]);
   const [messengerNumber, setMessengerNumber] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
     setError(null);
-    setSuccess(null);
     if (subjects.length === 0) {
       setError('Select at least one subject.');
       return;
@@ -93,7 +163,7 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
         availableDays,
         messengerNumber: messengerNumber.trim(),
       });
-      setSuccess('Thank you. We will contact you shortly.');
+      setShowSuccess(true);
       setParentFullName('');
       setStudentFullNames('');
       setStudentAge('');
@@ -111,11 +181,12 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
   };
 
   return (
+    <>
+      {showSuccess ? <SuccessModal onClose={() => setShowSuccess(false)} /> : null}
     <form className="panel tuition-form" onSubmit={(event) => void onSubmit(event)}>
       <h2 className="tuition-form-title">Request information</h2>
       <p className="meta tuition-form-lead">Fill this form and we will contact you shortly.</p>
       {error ? <div className="error-banner">{error}</div> : null}
-      {success ? <div className="success-banner">{success}</div> : null}
       <div className="field">
         <label htmlFor="parent-full-name">Full name of parent(s)</label>
         <input
@@ -147,7 +218,7 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
           onChange={(event) => setStudentAge(event.target.value)}
           required
           maxLength={100}
-          placeholder="e.g. 10 or 8 and 12 (two children)"
+          placeholder=""
         />
       </div>
       <div className="field">
@@ -190,7 +261,7 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
       <div className="field">
         <p className="meta" style={{ marginBottom: '0.5rem' }}>
         <span className="meta tuition-field-heading">
-          Preferred first session (date &amp; local time) · मिति र स्थानीय समय
+          Preferred first session (local time) · मिति र स्थानीय समय
         </span>
           Times are interpreted in <strong>{timeZoneLabel}</strong> ({ianaTimeZone}) for this country page.
           {!slugWasRecognized ? (
@@ -241,5 +312,6 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
         {loading ? 'Sending…' : 'Submit'}
       </button>
     </form>
+    </>
   );
 }
