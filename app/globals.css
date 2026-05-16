@@ -973,6 +973,117 @@ table.admin-table {
 
 .lp-fb-link { color: #4f93f5; }
 .lp-yt-link { color: #f87171; }
+.lp-tt-link { color: #e879f9; }
+
+/* ── PROGRAM TAG ── */
+.lp-program-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  margin-bottom: 0.5rem;
+}
+
+.lp-program-title-label {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ── VIDEOS SECTION ── */
+.lp-videos-section {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.lp-videos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.lp-video-item {
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Cover placeholder shown while embed loads */
+.lp-video-wrapper {
+  position: relative;
+  width: 325px;
+  min-height: 560px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.lp-video-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.lp-video-cover-img {
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* Hide cover once TikTok embed.js has injected its iframe */
+.lp-video-wrapper:has(iframe) .lp-video-cover {
+  opacity: 0;
+}
+
+.lp-video-play-btn {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.lp-tiktok-cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 2.5rem;
+}
+
+.lp-tiktok-btn {
+  background: linear-gradient(135deg, #69c9d0, #ee1d52);
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.lp-tiktok-btn:hover {
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+/* ── FOOTER LOCATION ── */
+.lp-footer-location {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--border);
+}
 
 /* ── CTA BANNER ── */
 .lp-cta-banner {

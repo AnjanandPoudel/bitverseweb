@@ -1,12 +1,14 @@
 import EnrollDropdown from '@/components/Enroll';
+import { FbVideoEmbed } from '@/components/FbVideoEmbed';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
-  title: 'Bitverse Tuition Center — Personal Attention, Real Results',
+  title: 'Bitverse Tuition — Online Tutoring for Abroad Students',
   description:
-    'Bitverse Tuition Center connects students with experienced teachers for classes 1–10. Subjects include Math, Science, English, Nepali, Computer, and more. Located in Shishuwa, Naubise.',
+    'Bitverse Tuition connects Nepali students abroad with experienced teachers for online classes (Grades 1–10). One-to-one and small-batch sessions in Math, Science, English, Nepali, Computer, and more.',
 };
 
 const SUBJECTS = [
@@ -19,47 +21,51 @@ const SUBJECTS = [
 ];
 
 const WHY_CHOOSE = [
-  { icon: '👥', title: 'Small Batches', desc: 'Personalised attention for every student with limited class sizes.' },
-  { icon: '📝', title: 'Weekly Tests', desc: 'Regular assessments to track progress and reinforce learning.' },
-  { icon: '📋', title: 'Weekly Progress Report', desc: 'Parents stay fully informed with detailed weekly updates.' },
-  { icon: '🎉', title: 'Extra-Curricular Activities', desc: 'Educational tours, picnics, and interactive group activities weekly.' },
-  { icon: '🆓', title: '3-Day Free Trial', desc: 'Experience the quality of our teaching before you enroll — no cost.' },
-  { icon: '🏠', title: 'Home Tuition', desc: 'Well-experienced teachers available for one-on-one home sessions.' },
-  { icon: '🚌', title: 'Pick & Drop Service', desc: 'Convenient transportation for students to and from the centre.' },
+  { icon: '🎯', title: 'One-to-One Classes', desc: 'Dedicated sessions focused entirely on your child — maximum attention, minimum distractions.' },
+  { icon: '👥', title: 'Small Batches', desc: 'When group learning suits better, we keep batches tiny so every student gets noticed.' },
+  { icon: '📝', title: 'Weekly Tests', desc: 'Regular assessments to track progress and reinforce learning online.' },
+  { icon: '📋', title: 'Weekly Progress Report', desc: 'Parents stay fully informed with detailed weekly updates sent directly to you.' },
+  { icon: '🌏', title: 'Study from Anywhere', desc: 'Live online classes accessible from any country — all you need is an internet connection.' },
+  { icon: '🆓', title: '3-Day Free Trial', desc: 'Experience our teaching quality before you commit — completely free, no obligation.' },
 ];
 
-const CLASS_PROGRAMS = [
+const ONLINE_PROGRAMS = [
   {
-    range: 'Class 1 – 4',
+    title: 'Primary Online',
+    range: 'Grades 1 – 4',
     color: 'lp-prog-green',
-    subjects: ['Homework Support', 'All Core Subjects'],
+    tag: 'One-to-One',
+    subjects: ['Homework Support', 'All Core Subjects', 'Nepali & English', 'Interactive Activities'],
   },
   {
-    range: 'Class 5 – 7',
+    title: 'Middle School Online',
+    range: 'Grades 5 – 7',
     color: 'lp-prog-blue',
+    tag: 'Small Batch / 1-to-1',
     subjects: ['Math & Science', 'English & Nepali', 'Computer', 'Social Studies'],
   },
   {
-    range: 'Class 8 – 10',
+    title: 'High School Online',
+    range: 'Grades 8 – 10',
     color: 'lp-prog-purple',
+    tag: 'Small Batch / 1-to-1',
     subjects: ['Math & Science', 'Optional Mathematics', 'Computer', 'Account'],
   },
 ];
 
 const TIMINGS = [
-  { session: 'Morning', time: '7:00 – 9:00 AM', icon: '🌅' },
-  { session: 'Evening', time: '5:00 – 7:00 PM', icon: '🌆' },
+  { session: 'Morning (NPT)', time: '7:00 – 9:00 AM', icon: '🌅' },
+  { session: 'Evening (NPT)', time: '5:00 – 7:00 PM', icon: '🌆' },
 ];
 
 export default function LandingPage(): React.ReactElement {
- 
   return (
     <div className="lp-root">
       {/* ── NAV ── */}
       <header className="lp-nav">
         <div className="lp-nav-inner">
           <Link href="/" className="lp-logo-link">
-            <Image src="/logo.jpeg" alt="Bitverse Tuition Center" width={48} height={48} className="lp-logo-img" />
+            <Image src="/logo.jpeg" alt="Bitverse Tuition" width={48} height={48} className="lp-logo-img" />
             <span className="lp-logo-text hidden-on-mobile">Bitverse <span className="lp-logo-accent">Tuition</span></span>
           </Link>
           <nav className="lp-nav-links">
@@ -77,7 +83,7 @@ export default function LandingPage(): React.ReactElement {
         <div className="lp-hero-bg">
           <Image
             src="/coverimage.png"
-            alt="Bitverse Tuition Center students"
+            alt="Bitverse online tuition for students abroad"
             fill
             className="lp-hero-img"
             priority
@@ -85,13 +91,13 @@ export default function LandingPage(): React.ReactElement {
           <div className="lp-hero-overlay" />
         </div>
         <div className="lp-hero-content">
-          <span className="lp-hero-badge">Admission Open · Classes 1 – 10</span>
+          <span className="lp-hero-badge">Online Classes · Grades 1 – 10 · Study from Anywhere</span>
           <h1 className="lp-hero-title">
             Personal Attention,<br />
             <span className="lp-hero-title-accent">Real Results</span>
           </h1>
           <p className="lp-hero-subtitle">
-            Bitverse Tuition Center connects dedicated teachers with students in Naubise. Small batches, flexible timings, and a 3-day free trial — because your child's future matters.
+            Bitverse Tuition brings experienced Nepali teachers directly to students living abroad — through live, one-to-one and small-batch online classes. Flexible timings, weekly reports, and a free 3-day trial.
           </p>
           <div className="lp-hero-actions">
             <div className="btn btn-primary">
@@ -106,19 +112,116 @@ export default function LandingPage(): React.ReactElement {
         </div>
       </section>
 
+      {/* ── FEATURED VIDEOS ── */}
+      <section className="lp-section lp-videos-section" id="videos">
+        <div className="lp-container">
+          <div className="lp-section-label">See Us in Action</div>
+          <h2 className="lp-section-title">Real Classes, Real Students</h2>
+          <p className="lp-section-sub" style={{ marginBottom: '2.5rem' }}>
+            Watch how our online sessions work — teaching style, student moments, and learning in action.
+          </p>
+
+          <div className="lp-videos-grid">
+            {/* TikTok — bitverse.tuition featured post */}
+            {/* <div className="lp-video-item">
+              <div className="lp-video-wrapper">
+                <div className="lp-video-cover">
+                  <Image src="/videocover1.png" alt="Video preview" fill className="lp-video-cover-img" />
+                  <div className="lp-video-play-btn">▶</div>
+                </div>
+                <blockquote
+                  className="tiktok-embed"
+                  cite="https://www.tiktok.com/@bitverse.tuition/photo/7634230446410272008"
+                  data-video-id="7634230446410272008"
+                  style={{ maxWidth: '325px', minWidth: '280px', margin: 0 }}
+                >
+                  <section>
+                    <a target="_blank" rel="noopener noreferrer" href="https://www.tiktok.com/@bitverse.tuition?refer=embed">@bitverse.tuition</a>
+                  </section>
+                </blockquote>
+              </div>
+            </div> */}
+
+            {/* TikTok — urmilaadhikaripou video 1 */}
+            <div className="lp-video-item">
+              <div className="lp-video-wrapper">
+                <div className="lp-video-cover">
+                  <Image src="/videocover2.png" alt="Video preview" fill className="lp-video-cover-img" />
+                  <div className="lp-video-play-btn">▶</div>
+                  <a href="https://www.tiktok.com/@urmilaadhikaripou/video/7618611825583623442" target="_blank" rel="noopener noreferrer">https://www.tiktok.com/@urmilaadhikaripou/video/7618611825583623442</a>
+                </div>
+                <blockquote
+                  className="tiktok-embed"
+                  cite="https://www.tiktok.com/@urmilaadhikaripou/video/7618611825583623442"
+                  data-video-id="7618611825583623442"
+                  style={{ maxWidth: '325px', minWidth: '280px', margin: 0 }}
+                >
+                  <section>
+                    <a target="_blank" rel="noopener noreferrer" href="https://www.tiktok.com/@urmilaadhikaripou?refer=embed">@urmilaadhikaripou</a>
+                  </section>
+                </blockquote>
+              </div>
+            </div>
+
+            {/* TikTok — urmilaadhikaripou video 2 */}
+            <div className="lp-video-item">
+              <div className="lp-video-wrapper">
+                <div className="lp-video-cover">
+                  <Image src="/videocover3.png" alt="Video preview" fill className="lp-video-cover-img" />
+                  <div className="lp-video-play-btn">▶</div>
+                  <a href="https://www.tiktok.com/@urmilaadhikaripou/video/7638261168649342228" target="_blank" rel="noopener noreferrer">https://www.tiktok.com/@urmilaadhikaripou/video/7638261168649342228</a>
+                </div>
+                <blockquote
+                  className="tiktok-embed"
+                  cite="https://www.tiktok.com/@urmilaadhikaripou/video/7638261168649342228"
+                  data-video-id="7638261168649342228"
+                  style={{ maxWidth: '325px', minWidth: '280px', margin: 0 }}
+                >
+                  <section>
+                    <a target="_blank" rel="noopener noreferrer" href="https://www.tiktok.com/@urmilaadhikaripou?refer=embed">@urmilaadhikaripou</a>
+                  </section>
+                </blockquote>
+              </div>
+            </div>
+
+            {/* Facebook Reel */}
+            <div className="lp-video-item">
+              <FbVideoEmbed
+                reelId="1468237488200378"
+                coverSrc="/videocover4.png"
+                coverAlt="Video preview"
+              />
+            </div>
+          </div>
+
+          <Script src="https://www.tiktok.com/embed.js" strategy="lazyOnload" />
+
+          <div className="lp-tiktok-cta">
+            <a
+              href="https://www.tiktok.com/@bitverse.tuition?_r=1&_t=ZS-96P11muDM3h"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn lp-btn-lg lp-tiktok-btn"
+            >
+              🎵 Follow @bitverse.tuition on TikTok
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* ── HOW IT WORKS ── */}
       <section className="lp-section lp-how">
         <div className="lp-container">
           <div className="lp-section-label">How It Works</div>
-          <h2 className="lp-section-title">We Connect Teachers With Students</h2>
+          <h2 className="lp-section-title">Learning Online Has Never Been Easier</h2>
           <p className="lp-section-sub">
-            Finding the right teacher shouldn't be hard. Bitverse bridges the gap — matching experienced, subject-specialist teachers with students who need them, whether at our centre or through home tuition.
+            No matter where your child is in the world, we connect them with the right teacher in minutes — live, interactive, and tailored to their school curriculum.
           </p>
           <div className="lp-steps">
             <div className="lp-step">
               <div className="lp-step-num">1</div>
               <h3>Enquire</h3>
-              <p>Tell us your class, subjects, and preferred timing — takes under a minute.</p>
+              <p>Tell us your grade, subjects, and preferred timing — takes under a minute.</p>
             </div>
             <div className="lp-step-arrow">→</div>
             <div className="lp-step">
@@ -130,7 +233,7 @@ export default function LandingPage(): React.ReactElement {
             <div className="lp-step">
               <div className="lp-step-num">3</div>
               <h3>Start Learning</h3>
-              <p>Attend your first 3 classes completely free and see the difference.</p>
+              <p>Join your first 3 online classes completely free and see the difference.</p>
             </div>
           </div>
         </div>
@@ -155,8 +258,8 @@ export default function LandingPage(): React.ReactElement {
       {/* ── WHY CHOOSE US ── */}
       <section className="lp-section" id="why-us">
         <div className="lp-container">
-          <div className="lp-section-label">Why Parents Choose Us</div>
-          <h2 className="lp-section-title">Everything Your Child Needs to Excel</h2>
+          <div className="lp-section-label">Why Families Choose Us</div>
+          <h2 className="lp-section-title">Everything Your Child Needs to Excel Online</h2>
           <div className="lp-features-grid">
             {WHY_CHOOSE.map(({ icon, title, desc }) => (
               <div key={title} className="lp-feature-card panel">
@@ -169,15 +272,23 @@ export default function LandingPage(): React.ReactElement {
         </div>
       </section>
 
-      {/* ── CLASS PROGRAMS ── */}
+      {/* ── ONLINE PROGRAMS ── */}
       <section className="lp-section" id="programs">
         <div className="lp-container">
           <div className="lp-section-label">Our Programs</div>
-          <h2 className="lp-section-title">Classes Tailored for Every Grade</h2>
+          <h2 className="lp-section-title">Online Classes for Every Grade — Wherever You Are</h2>
+          <h2 className="lp-section-subtitle">Flexible Timings to Suit Your Time Zone (Online study at any time you want)</h2>
+          <p className="lp-section-sub" style={{ marginBottom: '0' }}>
+            All programs are delivered live over video call, following the Nepal school curriculum so your child stays on track regardless of which country they're in.
+          </p>
           <div className="lp-programs-grid">
-            {CLASS_PROGRAMS.map(({ range, color, subjects }) => (
+            {ONLINE_PROGRAMS.map(({ title, range, color, tag, subjects }) => (
               <div key={range} className={`lp-program-card panel ${color}`}>
-                <h3 className="lp-program-range">{range}</h3>
+                <div>
+                  <span className="lp-program-tag">{tag}</span>
+                  <h3 className="lp-program-range">{range}</h3>
+                  <p className="lp-program-title-label">{title}</p>
+                </div>
                 <ul className="lp-program-list">
                   {subjects.map((s) => (
                     <li key={s}>{s}</li>
@@ -191,74 +302,36 @@ export default function LandingPage(): React.ReactElement {
       </section>
 
       {/* ── TIMINGS ── */}
-      <section className="lp-section lp-timings-section" id="timings">
+      {/* <section className="lp-section lp-timings-section" id="timings">
         <div className="lp-container">
           <div className="lp-section-label">Class Schedule</div>
-          <h2 className="lp-section-title">Flexible Timings to Suit Your Day</h2>
+          <h2 className="lp-section-title">Flexible Timings to Suit Your Time Zone</h2>
           <div className="lp-timings-grid">
             {TIMINGS.map(({ session, time, icon }) => (
               <div key={session} className="lp-timing-card panel">
                 <span className="lp-timing-icon">{icon}</span>
                 <div>
-                  <div className="lp-timing-session">{session} Session</div>
+                  <div className="lp-timing-session">{session}</div>
                   <div className="lp-timing-time">{time}</div>
                 </div>
               </div>
             ))}
           </div>
           <p className="lp-timings-note">
-            Home tuition timings are flexible and arranged directly with the teacher.
+            All times shown in Nepal Standard Time (NPT, UTC+5:45). Custom timings can be arranged to suit students in different countries — just ask when you enquire.
           </p>
         </div>
-      </section>
-
-      {/* ── EXTRA-CURRICULAR ── */}
-      <section className="lp-section lp-extra-section">
-        <div className="lp-container lp-extra-inner">
-          <div className="lp-extra-text">
-            <div className="lp-section-label">Beyond the Classroom</div>
-            <h2 className="lp-section-title">Extra-Curricular Activities</h2>
-            <p className="lp-section-sub">
-              Learning isn't just about textbooks. Every week we organise interactive sessions, and throughout the year students enjoy educational tours, fun picnics, and group activities that build confidence and teamwork.
-            </p>
-            <ul className="lp-extra-list">
-              <li>🚌 Educational Tours</li>
-              <li>🧺 Picnics & Outings</li>
-              <li>🤝 Group Activities</li>
-              <li>🎓 Interactive Learning (weekly)</li>
-            </ul>
-          </div>
-          <div className="lp-extra-badge-wrap">
-            <div className="lp-extra-badge">
-              <span className="lp-extra-badge-num">100%</span>
-              <span className="lp-extra-badge-label">Holistic Education</span>
-            </div>
-            <div className="lp-extra-badge">
-              <span className="lp-extra-badge-num">3</span>
-              <span className="lp-extra-badge-label">Free Trial Classes</span>
-            </div>
-            <div className="lp-extra-badge">
-              <span className="lp-extra-badge-num">1–10</span>
-              <span className="lp-extra-badge-label">All Classes Covered</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      </section> */}
 
       {/* ── CONTACT ── */}
       <section className="lp-section lp-contact-section" id="contact">
         <div className="lp-container">
           <div className="lp-section-label">Get In Touch</div>
-          <h2 className="lp-section-title">Visit Us or Call Today</h2>
+          <h2 className="lp-section-title">Reach Out &amp; Start Today</h2>
           <div className="lp-contact-grid">
             <div className="lp-contact-card panel">
-              <div className="lp-contact-icon">📍</div>
-              <h3>Location</h3>
-              <p>Shishuwa, Naubise<br />Opposite Naubise Milk Dairy</p>
-            </div>
-            <div className="lp-contact-card panel">
               <div className="lp-contact-icon">📞</div>
-              <h3>Phone</h3>
+              <h3>Phone / WhatsApp</h3>
               <p>
                 <a href="tel:9846940545">9846940545</a><br />
                 <a href="tel:9765941104">9765941104</a>
@@ -285,6 +358,15 @@ export default function LandingPage(): React.ReactElement {
                 >
                   YouTube — @Bitverse-Tuition
                 </a>
+                <br />
+                <a
+                  href="https://www.tiktok.com/@bitverse.tuition?_r=1&_t=ZS-96P11muDM3h"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="lp-social-link lp-tt-link"
+                >
+                  TikTok — @bitverse.tuition
+                </a>
               </p>
             </div>
           </div>
@@ -296,9 +378,9 @@ export default function LandingPage(): React.ReactElement {
         <div className="lp-container lp-cta-inner">
           <div>
             <h2 className="lp-cta-title">Ready to get started?</h2>
-            <p className="lp-cta-sub">Claim your 3 free trial classes — no obligation, no payment required.</p>
+            <p className="lp-cta-sub">Claim your 3 free online trial classes — no obligation, no payment required.</p>
           </div>
-          <a href="tel:9846940545" className="btn btn-primary lp-btn-lg">Call Us Now</a>
+          <a href="tel:9846940545" className="btn btn-primary lp-btn-lg">Call / WhatsApp Us</a>
           <a href="tel:9846940545" className="lp-hero-phones">📞 9846940545</a>
           <a href="tel:9765941104" className="lp-hero-phones">📞 9765941104</a>
         </div>
@@ -308,16 +390,18 @@ export default function LandingPage(): React.ReactElement {
       <footer className="lp-footer">
         <div className="lp-container lp-footer-inner">
           <div className="lp-footer-brand">
-            <Image src="/logo.jpeg" alt="Bitverse Tuition Center" width={36} height={36} className="lp-logo-img" />
-            <span>Bitverse Tuition Center</span>
+            <Image src="/logo.jpeg" alt="Bitverse Tuition" width={36} height={36} className="lp-logo-img" />
+            <span>Bitverse Tuition</span>
           </div>
-          <p className="lp-footer-tagline">Personal Attention, Real Results</p>
+          <p className="lp-footer-tagline">Personal Attention, Real Results — Online</p>
           <div className="lp-footer-links">
             <a href="https://www.facebook.com/BitverseTech" target="_blank" rel="noopener noreferrer">Facebook</a>
             <a href="https://www.youtube.com/@Bitverse-Tuition" target="_blank" rel="noopener noreferrer">YouTube</a>
+            <a href="https://www.tiktok.com/@bitverse.tuition?_r=1&_t=ZS-96P11muDM3h" target="_blank" rel="noopener noreferrer">TikTok</a>
             <a href="tel:9846940545">9846940545</a>
           </div>
-          <p className="lp-footer-copy">© {new Date().getFullYear()} Bitverse Tuition Center. All rights reserved.</p>
+          <p className="lp-footer-location">📍 Shishuwa, Naubise, Nepal</p>
+          <p className="lp-footer-copy">© {new Date().getFullYear()} Bitverse Tuition. All rights reserved.</p>
         </div>
       </footer>
     </div>
