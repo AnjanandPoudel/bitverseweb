@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import React, { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ApiCallError, apiRequest, type IListMeta } from '@/lib/api';
 import { toastApiSuccess } from '@/lib/mutation-feedback';
@@ -14,6 +14,9 @@ import {
 import { FieldDiff } from '@/components/FieldDiff';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
+const SUBJECTS = ['English', 'Nepali', 'Math', 'Science', 'Other'] as const;
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
+
 interface ITuitionInquiryDetail {
   _id?: string;
   parentFullName?: string;
@@ -22,7 +25,6 @@ interface ITuitionInquiryDetail {
   studentClass?: string;
   subjects?: string[];
   subjectsOther?: string;
-  preferredStartAt?: string;
   ianaTimeZone?: string;
   countrySlug?: string;
   preferredTime?: string;
@@ -57,13 +59,9 @@ interface IAuditListPayload {
 }
 
 function formatDateTime(value: string | undefined): string {
-  if (!value) {
-    return '—';
-  }
+  if (!value) return '—';
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
+  if (Number.isNaN(parsed.getTime())) return value;
   return parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
@@ -87,14 +85,30 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
   const accessToken = useAdminAuthStore((state) => state.accessToken);
 
   const [inquiry, setInquiry] = useState<ITuitionInquiryDetail | null>(null);
-  const [status, setStatus] = useState<TuitionInquiryStatusValue>('new_request');
-  const [adminNotes, setAdminNotes] = useState('');
-  const [preferredTime, setPreferredTime] = useState('');
-  const [actualTime, setActualTime] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
 
+  // ── Info panel state (module 1) ──────────────────────────────────────────
+  const [parentFullName, setParentFullName] = useState('');
+  const [studentFullNames, setStudentFullNames] = useState('');
+  const [studentAge, setStudentAge] = useState('');
+  const [studentClass, setStudentClass] = useState('');
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [subjectsOther, setSubjectsOther] = useState('');
+  const [ianaTimeZone, setIanaTimeZone] = useState('');
+  const [countrySlug, setCountrySlug] = useState('');
+  const [preferredTime, setPreferredTime] = useState('');
+  const [actualTime, setActualTime] = useState('');
+  const [availableDays, setAvailableDays] = useState<string[]>([]);
+  const [messengerNumber, setMessengerNumber] = useState('');
+  const [savingInfo, setSavingInfo] = useState(false);
+
+  // ── Workflow panel state (module 2) ─────────────────────────────────────
+  const [status, setStatus] = useState<TuitionInquiryStatusValue>('new_request');
+  const [adminNotes, setAdminNotes] = useState('');
+  const [savingWorkflow, setSavingWorkflow] = useState(false);
+
+  // ── Audit log state ──────────────────────────────────────────────────────
   const [auditLogs, setAuditLogs] = useState<IAuditLogEntry[]>([]);
   const [auditMeta, setAuditMeta] = useState<IListMeta | null>(null);
   const [auditPage, setAuditPage] = useState(1);
@@ -102,15 +116,14 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
   const [expandedAuditIds, setExpandedAuditIds] = useState<Set<string>>(new Set());
 
   const loadInquiry = useCallback(async (): Promise<void> => {
-    if (!accessToken || !inquiryId) {
-      return;
-    }
+    if (!accessToken || !inquiryId) return;
     setLoading(true);
     setError(null);
     try {
-      const envelope = await apiRequest<ITuitionInquiryDetail>(`/tuition-inquiries/${encodeURIComponent(inquiryId)}`, {
-        token: accessToken,
-      });
+      const envelope = await apiRequest<ITuitionInquiryDetail>(
+        `/tuition-inquiries/${encodeURIComponent(inquiryId)}`,
+        { token: accessToken },
+      );
       const data = envelope.data;
       if (!data) {
         setError('Inquiry not found.');
@@ -118,11 +131,24 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
         return;
       }
       setInquiry(data);
-      const nextStatus = TUITION_INQUIRY_STATUSES.find((s) => s === data.status) ?? 'new_request';
-      setStatus(nextStatus);
-      setAdminNotes(data.adminNotes ?? '');
+
+      // Populate module 1
+      setParentFullName(data.parentFullName ?? '');
+      setStudentFullNames(data.studentFullNames ?? '');
+      setStudentAge(data.studentAge ?? '');
+      setStudentClass(data.studentClass ?? '');
+      setSubjects(data.subjects ?? []);
+      setSubjectsOther(data.subjectsOther ?? '');
+      setIanaTimeZone(data.ianaTimeZone ?? '');
+      setCountrySlug(data.countrySlug ?? '');
       setPreferredTime(data.preferredTime ?? '');
       setActualTime(toDatetimeLocal(data.actualTime));
+      setAvailableDays(data.availableDays ?? []);
+      setMessengerNumber(data.messengerNumber ?? '');
+
+      // Populate module 2
+      setStatus(TUITION_INQUIRY_STATUSES.find((s) => s === data.status) ?? 'new_request');
+      setAdminNotes(data.adminNotes ?? '');
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Failed to load inquiry.');
       setInquiry(null);
@@ -142,69 +168,97 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
       setAuditLogs(envelope.data?.items ?? []);
       setAuditMeta(envelope.meta ?? null);
     } catch {
-      // audit history is best-effort; don't block the main page
+      // audit history is best-effort
     } finally {
       setAuditLoading(false);
     }
   }, [accessToken, inquiryId, auditPage]);
 
-  useEffect(() => {
-    void loadInquiry();
-  }, [loadInquiry]);
+  useEffect(() => { void loadInquiry(); }, [loadInquiry]);
+  useEffect(() => { void loadAuditLogs(); }, [loadAuditLogs]);
 
-  useEffect(() => {
-    void loadAuditLogs();
-  }, [loadAuditLogs]);
+  const toggleSubject = (subject: string): void => {
+    setSubjects((prev) =>
+      prev.includes(subject) ? prev.filter((s) => s !== subject) : [...prev, subject],
+    );
+  };
 
-  const onSave = async (event: FormEvent): Promise<void> => {
+  const toggleDay = (day: string): void => {
+    setAvailableDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    );
+  };
+
+  const onSaveInfo = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
-    if (!accessToken || !inquiryId) {
-      return;
-    }
-    setSaving(true);
+    if (!accessToken || !inquiryId) return;
+    setSavingInfo(true);
     setError(null);
     try {
-      const body: Record<string, unknown> = { status, adminNotes, preferredTime: preferredTime || null };
-      if (actualTime) {
-        body.actualTime = new Date(actualTime).toISOString();
-      } else {
-        body.actualTime = null;
-      }
-      const envelope = await apiRequest<ITuitionInquiryDetail>(`/tuition-inquiries/${encodeURIComponent(inquiryId)}`, {
-        method: 'PATCH',
-        token: accessToken,
-        body,
-      });
-      toastApiSuccess(envelope, 'Tuition inquiry updated.');
+      const body: Record<string, unknown> = {
+        parentFullName: parentFullName || undefined,
+        studentFullNames: studentFullNames || undefined,
+        studentAge: studentAge || undefined,
+        studentClass: studentClass || undefined,
+        subjects: subjects.length > 0 ? subjects : undefined,
+        subjectsOther: subjectsOther || null,
+        ianaTimeZone: ianaTimeZone || undefined,
+        countrySlug: countrySlug || undefined,
+        preferredTime: preferredTime || null,
+        actualTime: actualTime ? new Date(actualTime).toISOString() : null,
+        availableDays: availableDays.length > 0 ? availableDays : undefined,
+        messengerNumber: messengerNumber || undefined,
+      };
+      const envelope = await apiRequest<ITuitionInquiryDetail>(
+        `/tuition-inquiries/${encodeURIComponent(inquiryId)}`,
+        { method: 'PATCH', token: accessToken, body },
+      );
+      toastApiSuccess(envelope, 'Inquiry information updated.');
       await loadInquiry();
       void loadAuditLogs();
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Save failed.');
     } finally {
-      setSaving(false);
+      setSavingInfo(false);
+    }
+  };
+
+  const onSaveWorkflow = async (event: FormEvent): Promise<void> => {
+    event.preventDefault();
+    if (!accessToken || !inquiryId) return;
+    setSavingWorkflow(true);
+    setError(null);
+    try {
+      const envelope = await apiRequest<ITuitionInquiryDetail>(
+        `/tuition-inquiries/${encodeURIComponent(inquiryId)}`,
+        { method: 'PATCH', token: accessToken, body: { status, adminNotes } },
+      );
+      toastApiSuccess(envelope, 'Workflow updated.');
+      await loadInquiry();
+      void loadAuditLogs();
+    } catch (err: unknown) {
+      setError(err instanceof ApiCallError ? err.message : 'Save failed.');
+    } finally {
+      setSavingWorkflow(false);
     }
   };
 
   const onDelete = async (): Promise<void> => {
-    if (!accessToken || !inquiryId) {
-      return;
-    }
-    if (!window.confirm('Delete this inquiry permanently? This cannot be undone.')) {
-      return;
-    }
-    setSaving(true);
+    if (!accessToken || !inquiryId) return;
+    if (!window.confirm('Delete this inquiry permanently? This cannot be undone.')) return;
+    setSavingWorkflow(true);
     setError(null);
     try {
-      const envelope = await apiRequest<unknown>(`/tuition-inquiries/${encodeURIComponent(inquiryId)}`, {
-        method: 'DELETE',
-        token: accessToken,
-      });
+      const envelope = await apiRequest<unknown>(
+        `/tuition-inquiries/${encodeURIComponent(inquiryId)}`,
+        { method: 'DELETE', token: accessToken },
+      );
       toastApiSuccess(envelope, 'Tuition inquiry deleted.');
       router.push(adminRoute('/tuition-inquiries'));
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Delete failed.');
     } finally {
-      setSaving(false);
+      setSavingWorkflow(false);
     }
   };
 
@@ -230,100 +284,133 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
     return n;
   };
 
+  const checkboxRow: React.CSSProperties = {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px 16px',
+    marginTop: 6,
+  };
+
+  const checkboxLabel: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    fontSize: '0.88rem',
+    cursor: 'pointer',
+  };
+
   return (
     <div>
       <h1 className="page-title">Tuition inquiry</h1>
       <p className="meta" style={{ marginBottom: '1rem' }}>
         <Link href={adminRoute('/tuition-inquiries')}>← Back to list</Link>
         {inquiry?._id ? (
-          <>
-            {' · '}
-            <span className="meta">ID: {inquiry._id}</span>
-          </>
+          <> · <span className="meta">ID: {inquiry._id}</span></>
         ) : null}
       </p>
+
       {error && <div className="error-banner">{error}</div>}
       {loading && !inquiry ? <p className="meta">Loading…</p> : null}
+
       {inquiry ? (
         <>
-          <div className="panel" style={{ marginBottom: '1rem' }}>
+          {/* ── Module 1: Submitted information (fully editable) ── */}
+          <form
+            className="panel"
+            style={{ marginBottom: '1rem' }}
+            onSubmit={(e) => void onSaveInfo(e)}
+          >
             <h2 className="meta" style={{ marginTop: 0, fontSize: '0.95rem', fontWeight: 600 }}>
               Submitted information
             </h2>
-            <dl style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: '0.5rem 1rem', margin: 0 }}>
-              <dt className="meta">Parent</dt>
-              <dd style={{ margin: 0 }}>{inquiry.parentFullName}</dd>
-              <dt className="meta">Students</dt>
-              <dd style={{ margin: 0 }}>{inquiry.studentFullNames}</dd>
-              <dt className="meta">Age</dt>
-              <dd style={{ margin: 0 }}>{inquiry.studentAge}</dd>
-              <dt className="meta">Class</dt>
-              <dd style={{ margin: 0 }}>{inquiry.studentClass}</dd>
-              <dt className="meta">Subjects</dt>
-              <dd style={{ margin: 0 }}>{(inquiry.subjects ?? []).join(', ') || '—'}</dd>
-              {inquiry.subjectsOther ? (
-                <>
-                  <dt className="meta">Other subjects</dt>
-                  <dd style={{ margin: 0 }}>{inquiry.subjectsOther}</dd>
-                </>
-              ) : null}
-              <dt className="meta">Preferred start</dt>
-              <dd style={{ margin: 0 }}>{formatDateTime(inquiry.preferredStartAt)}</dd>
-              <dt className="meta">Time zone</dt>
-              <dd style={{ margin: 0 }}>{inquiry.ianaTimeZone}</dd>
-              <dt className="meta">Country</dt>
-              <dd style={{ margin: 0 }}>{inquiry.countrySlug}</dd>
-              <dt className="meta">Preferred time</dt>
-              <dd style={{ margin: 0 }}>{inquiry.preferredTime || '—'}</dd>
-              <dt className="meta">Actual time</dt>
-              <dd style={{ margin: 0 }}>
-                {inquiry.actualTime ? (
-                  <strong style={{ color: 'var(--accent)' }}>{formatDateTime(inquiry.actualTime)}</strong>
-                ) : (
-                  <span style={{ color: 'var(--muted)' }}>Not set yet</span>
-                )}
-              </dd>
-              <dt className="meta">Available days</dt>
-              <dd style={{ margin: 0 }}>{(inquiry.availableDays ?? []).join(', ') || '—'}</dd>
-              <dt className="meta">Messenger</dt>
-              <dd style={{ margin: 0 }}>{inquiry.messengerNumber}</dd>
-              <dt className="meta">Submitted at</dt>
-              <dd style={{ margin: 0 }}>{formatDateTime(inquiry.createdAt)}</dd>
-              <dt className="meta">Updated at</dt>
-              <dd style={{ margin: 0 }}>{formatDateTime(inquiry.updatedAt)}</dd>
-            </dl>
-          </div>
-
-          <form className="panel" style={{ maxWidth: 600, marginBottom: '1rem' }} onSubmit={(event) => void onSave(event)}>
-            <h2 className="meta" style={{ marginTop: 0, fontSize: '0.95rem', fontWeight: 600 }}>
-              Staff workflow
-            </h2>
             <p className="meta" style={{ marginTop: 0 }}>
-              Update the pipeline so other admins see where this family is in your process (review → contact →
-              negotiate → finalize).
+              Edit the details submitted by the parent. Changes are tracked in the audit log below.
             </p>
+
             <div className="field">
-              <label htmlFor="inq-status">Status</label>
-              <select id="inq-status" value={status} onChange={(event) => setStatus(event.target.value as TuitionInquiryStatusValue)}>
-                {TUITION_INQUIRY_STATUSES.map((value) => (
-                  <option key={value} value={value}>
-                    {tuitionInquiryStatusLabel(value)}
-                  </option>
-                ))}
-              </select>
+              <label htmlFor="inq-parent">Parent full name</label>
+              <input
+                id="inq-parent"
+                value={parentFullName}
+                onChange={(e) => setParentFullName(e.target.value)}
+                maxLength={200}
+              />
             </div>
+
             <div className="field">
-              <label htmlFor="inq-preferred-time">Preferred time</label>
+              <label htmlFor="inq-students">Student full name(s)</label>
+              <input
+                id="inq-students"
+                value={studentFullNames}
+                onChange={(e) => setStudentFullNames(e.target.value)}
+                maxLength={500}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+              <div className="field">
+                <label htmlFor="inq-age">Student age</label>
+                <input
+                  id="inq-age"
+                  value={studentAge}
+                  onChange={(e) => setStudentAge(e.target.value)}
+                  maxLength={100}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="inq-class">Student class / grade</label>
+                <input
+                  id="inq-class"
+                  value={studentClass}
+                  onChange={(e) => setStudentClass(e.target.value)}
+                  maxLength={200}
+                />
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Subjects</label>
+              <div style={checkboxRow}>
+                {SUBJECTS.map((s) => (
+                  <label key={s} style={checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={subjects.includes(s)}
+                      onChange={() => toggleSubject(s)}
+                    />
+                    {s}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {subjects.includes('Other') ? (
+              <div className="field">
+                <label htmlFor="inq-subjects-other">Other subjects (details)</label>
+                <input
+                  id="inq-subjects-other"
+                  value={subjectsOther}
+                  onChange={(e) => setSubjectsOther(e.target.value)}
+                  maxLength={300}
+                  placeholder="Describe other subjects"
+                />
+              </div>
+            ) : null}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+            <div className="field">
+              <label htmlFor="inq-preferred-time">Preferred session time</label>
               <input
                 id="inq-preferred-time"
                 value={preferredTime}
                 onChange={(e) => setPreferredTime(e.target.value)}
-                placeholder='e.g. Evening, Flexible, Weekends'
+                placeholder="e.g. Evening, Flexible, Weekends"
                 maxLength={300}
               />
             </div>
+
             <div className="field">
-              <label htmlFor="inq-actual-time">Actual time (confirmed by admin)</label>
+              <label htmlFor="inq-actual-time">Actual confirmed time</label>
               <input
                 id="inq-actual-time"
                 type="datetime-local"
@@ -331,31 +418,122 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                 onChange={(e) => setActualTime(e.target.value)}
               />
               <p className="meta" style={{ margin: '4px 0 0', fontSize: '0.78rem' }}>
-                Set this once a session time is confirmed with the family.
+                Set once a session time is confirmed with the family.
               </p>
             </div>
+              <div className="field">
+                <label htmlFor="inq-timezone">Time zone (IANA)</label>
+                <input
+                  id="inq-timezone"
+                  value={ianaTimeZone}
+                  onChange={(e) => setIanaTimeZone(e.target.value)}
+                  placeholder="e.g. Asia/Kathmandu"
+                  maxLength={100}
+                />
+              </div>
+            </div>
+
+            <div className="field">
+              <label htmlFor="inq-country">Country slug</label>
+              <input
+                id="inq-country"
+                value={countrySlug}
+                onChange={(e) => setCountrySlug(e.target.value)}
+                maxLength={120}
+              />
+            </div>
+
+            <div className="field">
+              <label>Available days</label>
+              <div style={checkboxRow}>
+                {DAYS.map((d) => (
+                  <label key={d} style={checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={availableDays.includes(d)}
+                      onChange={() => toggleDay(d)}
+                    />
+                    {d}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="field">
+              <label htmlFor="inq-messenger">Messenger / WhatsApp number</label>
+              <input
+                id="inq-messenger"
+                value={messengerNumber}
+                onChange={(e) => setMessengerNumber(e.target.value)}
+                maxLength={80}
+              />
+            </div>
+
+
+
+            <div>
+              <button type="submit" className="btn btn-primary" disabled={savingInfo}>
+                {savingInfo ? 'Saving…' : 'Save information'}
+              </button>
+            </div>
+          </form>
+
+          {/* ── Module 2: Staff workflow ── */}
+          <form
+            className="panel"
+            style={{ maxWidth: 600, marginBottom: '1rem' }}
+            onSubmit={(e) => void onSaveWorkflow(e)}
+          >
+            <h2 className="meta" style={{ marginTop: 0, fontSize: '0.95rem', fontWeight: 600 }}>
+              Staff workflow
+            </h2>
+            <p className="meta" style={{ marginTop: 0 }}>
+              Update the pipeline status and leave internal notes for your team (not visible to parents).
+            </p>
+
+            <div className="field">
+              <label htmlFor="inq-status">Status</label>
+              <select
+                id="inq-status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value as TuitionInquiryStatusValue)}
+              >
+                {TUITION_INQUIRY_STATUSES.map((value) => (
+                  <option key={value} value={value}>
+                    {tuitionInquiryStatusLabel(value)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="field">
               <label htmlFor="inq-notes">Internal notes</label>
               <textarea
                 id="inq-notes"
                 value={adminNotes}
-                onChange={(event) => setAdminNotes(event.target.value)}
+                onChange={(e) => setAdminNotes(e.target.value)}
                 rows={5}
                 placeholder="Handoff context for teammates (not shown to parents)."
                 maxLength={4000}
               />
             </div>
+
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-              <button type="submit" className="btn btn-primary" disabled={saving}>
-                {saving ? 'Saving…' : 'Save changes'}
+              <button type="submit" className="btn btn-primary" disabled={savingWorkflow}>
+                {savingWorkflow ? 'Saving…' : 'Save workflow'}
               </button>
-              <button type="button" className="btn" disabled={saving} onClick={() => void onDelete()}>
+              <button
+                type="button"
+                className="btn"
+                disabled={savingWorkflow}
+                onClick={() => void onDelete()}
+              >
                 Delete inquiry
               </button>
             </div>
           </form>
 
-          {/* Inquiry history */}
+          {/* ── Change history ── */}
           <div className="panel" style={{ marginBottom: '1rem' }}>
             <h2 className="meta" style={{ marginTop: 0, fontSize: '0.95rem', fontWeight: 600 }}>
               Change history
@@ -376,11 +554,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                   return (
                     <div
                       key={id}
-                      style={{
-                        border: '1px solid var(--border)',
-                        borderRadius: 8,
-                        overflow: 'hidden',
-                      }}
+                      style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}
                     >
                       <div
                         style={{
@@ -395,7 +569,9 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                         onClick={() => { if (!isMinimal) toggleAuditExpand(id); }}
                         role={isMinimal ? undefined : 'button'}
                         tabIndex={isMinimal ? undefined : 0}
-                        onKeyDown={(e) => { if (!isMinimal && (e.key === 'Enter' || e.key === ' ')) toggleAuditExpand(id); }}
+                        onKeyDown={(e) => {
+                          if (!isMinimal && (e.key === 'Enter' || e.key === ' ')) toggleAuditExpand(id);
+                        }}
                       >
                         <span
                           style={{
@@ -414,7 +590,9 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                         </span>
                         <span style={{ fontSize: '0.82rem', fontWeight: 500 }}>{actorLabel}</span>
                         {entry.actor.role ? (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>({entry.actor.role})</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
+                            ({entry.actor.role})
+                          </span>
                         ) : null}
                         <span style={{ fontSize: '0.78rem', color: 'var(--muted)', marginLeft: 'auto' }}>
                           {formatDateTime(entry.createdAt)}

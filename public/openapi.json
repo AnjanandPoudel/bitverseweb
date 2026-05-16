@@ -1874,7 +1874,7 @@
                   "studentAge",
                   "studentClass",
                   "subjects",
-                  "preferredStartAt",
+                  "preferredTime",
                   "ianaTimeZone",
                   "countrySlug",
                   "availableDays",
@@ -1918,11 +1918,10 @@
                     "type": "string",
                     "example": "Social studies"
                   },
-                  "preferredStartAt": {
+                  "preferredTime": {
                     "type": "string",
-                    "format": "date-time",
-                    "example": "2026-05-20T08:00:00.000Z",
-                    "description": "UTC instant for the preferred first session, as ISO 8601."
+                    "example": "Evening, Flexible, Weekends",
+                    "description": "Vague time preference (e.g. Evening, Flexible, Weekends)"
                   },
                   "ianaTimeZone": {
                     "type": "string",

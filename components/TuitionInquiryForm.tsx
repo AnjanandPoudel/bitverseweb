@@ -1,6 +1,5 @@
 'use client';
 
-import { DateTime } from 'luxon';
 import { FormEvent, useMemo, useState, type ReactElement } from 'react';
 import { ApiCallError } from '@/lib/api';
 import { resolveIanaTimeZoneForCountrySlug } from '@/lib/country-tuition-timezones';
@@ -11,7 +10,6 @@ import {
   type TTuitionDayOption,
   type TTuitionSubjectOption,
 } from '@/lib/tuition-inquiry.client';
-import { combineLocalDateTimeToUtcIso } from '@/lib/tuition-preferred-datetime';
 
 function toggleInList<T extends string>(list: T[], value: T): T[] {
   if (list.includes(value)) {
@@ -31,10 +29,6 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
     () => resolveIanaTimeZoneForCountrySlug(normalizedCountrySlug),
     [normalizedCountrySlug],
   );
-
-  const minPreferredDate = useMemo((): string => {
-    return DateTime.now().setZone(ianaTimeZone).toISODate() ?? '';
-  }, [ianaTimeZone]);
 
   const timeZoneLabel = useMemo((): string => {
     try {
@@ -56,7 +50,6 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
   const [subjects, setSubjects] = useState<TTuitionSubjectOption[]>([]);
   const [subjectsOther, setSubjectsOther] = useState('');
   const [preferredDate, setPreferredDate] = useState('');
-  const [preferredWallTime, setPreferredWallTime] = useState('');
   const [availableDays, setAvailableDays] = useState<TTuitionDayOption[]>([]);
   const [messengerNumber, setMessengerNumber] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -79,20 +72,12 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
       setError('Please describe the other subjects you need.');
       return;
     }
-    if (preferredDate.trim().length === 0 || preferredWallTime.trim().length === 0) {
+    if (preferredDate.trim().length === 0) {
+      alert('preferredDate: ' + preferredDate);
       setError('Choose a preferred date and time for your first session.');
       return;
     }
-    const preferredStartAtIso = combineLocalDateTimeToUtcIso(preferredDate, preferredWallTime, ianaTimeZone);
-    if (!preferredStartAtIso) {
-      setError('That date and time could not be read. Please check your entries.');
-      return;
-    }
-    const preferredInstantMs = Date.parse(preferredStartAtIso);
-    if (Number.isNaN(preferredInstantMs) || preferredInstantMs < Date.now() - 60_000) {
-      setError("Pick a date and time at least one minute from now (in your country's local time).");
-      return;
-    }
+
     setLoading(true);
     try {
       await submitTuitionInquiry({
@@ -102,9 +87,9 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
         studentClass: studentClass.trim(),
         subjects,
         subjectsOther: subjects.includes('Other') ? subjectsOther.trim() : undefined,
-        preferredStartAt: preferredStartAtIso,
         ianaTimeZone,
         countrySlug: normalizedCountrySlug,
+        preferredTime: preferredDate.trim(),
         availableDays,
         messengerNumber: messengerNumber.trim(),
       });
@@ -116,7 +101,6 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
       setSubjects([]);
       setSubjectsOther('');
       setPreferredDate('');
-      setPreferredWallTime('');
       setAvailableDays([]);
       setMessengerNumber('');
     } catch (err: unknown) {
@@ -204,43 +188,26 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
         </div>
       ) : null}
       <div className="field">
+        <p className="meta" style={{ marginBottom: '0.5rem' }}>
         <span className="meta tuition-field-heading">
           Preferred first session (date &amp; local time) · मिति र स्थानीय समय
         </span>
-        <p className="meta" style={{ marginBottom: '0.5rem' }}>
           Times are interpreted in <strong>{timeZoneLabel}</strong> ({ianaTimeZone}) for this country page.
           {!slugWasRecognized ? (
             <span> We could not match this URL to a known region; if the time zone is wrong, mention your city in the
             message to staff when they contact you.</span>
           ) : null}
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <div style={{flexDirection: 'column' }}>
-            <label htmlFor="preferred-date">Starting From</label>
+            <label htmlFor="preferred-date"> Preferred Time </label>
             <input
               id="preferred-date"
-              type="date"
+              type="text"
               value={preferredDate}
-              min={minPreferredDate}
+              placeholder="e.g. 06:00 PM JST , evening, flexible, morning, 06-08 PM JST"
               onChange={(event) => setPreferredDate(event.target.value)}
-              onClick={(e) => e.currentTarget.showPicker()}
               required
-              style={{backgroundColor: 'white', color: 'navy', border: '1px solid #2d3a4a' , margin:'0.5rem', padding:'0.5rem 0.65rem'}}
             />
-          </div>
-          <div style={{flexDirection: 'column' }}>
-            <label htmlFor="preferred-wall-time">Availability Time</label>
-            <input
-              id="preferred-wall-time"
-              type="time"
-              value={preferredWallTime}
-              onChange={(event) => setPreferredWallTime(event.target.value)}
-              required
-              onClick={(e) => e.currentTarget.showPicker()}
-              style={{backgroundColor: 'white', color: 'navy', border: '1px solid #2d3a4a' , margin:'0.5rem', padding:'0.5rem 0.65rem'}}
-            />
-          </div>
-        </div>
+      
       </div>
       <div className="field">
         <span className="meta tuition-field-heading">Available days · उपलब्ध दिनहरू</span>

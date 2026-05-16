@@ -22,8 +22,8 @@ export interface ITuitionInquirySubmitBody {
   studentClass: string;
   subjects: TTuitionSubjectOption[];
   subjectsOther?: string;
-  /** ISO 8601 UTC instant for the preferred first session. */
-  preferredStartAt: string;
+  /** Vague time preference for the preferred first session. */
+  preferredTime: string;
   /** IANA time zone matching the country page (wall clock for date + time). */
   ianaTimeZone: string;
   /** Lowercase slug from the country landing URL. */

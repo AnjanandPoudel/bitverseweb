@@ -1,5 +1,5 @@
 'use client';
-
+import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { ApiCallError, apiRequest, type IListMeta } from '@/lib/api';
 import { PaginationBar } from '@/components/PaginationBar';
@@ -164,13 +164,16 @@ export default function AuditLogsPage(): React.ReactElement {
         </div>
         <div className="field" style={{ flex: '0 1 220px', marginBottom: 0 }}>
           <label htmlFor="al-resource">Resource type</label>
-          <input
+          <select
             id="al-resource"
             value={resourceTypeFilter}
-            onChange={(e) => setResourceTypeFilter(e.target.value)}
-            placeholder="e.g. TuitionInquiry"
-            onKeyDown={(e) => { if (e.key === 'Enter') { setPage(1); void load(); } }}
-          />
+            onChange={(e) => { setResourceTypeFilter(e.target.value); setPage(1); }}
+          >
+            <option value="">All resources</option>
+            <option value="TuitionInquiry">Tuition Inquiry</option>
+            <option value="User">User</option>
+            <option value="Role">Role</option>
+          </select>
         </div>
         <button
           type="button"
@@ -214,11 +217,11 @@ export default function AuditLogsPage(): React.ReactElement {
               const id = row._id ?? `${row.resourceId}-${row.createdAt}`;
               const isExpanded = expandedIds.has(id);
               const diffCount = changedFieldCount(row);
-              const isMinimal = diffCount === 1;
+              const isMinimal = diffCount === 0;
               const link = resourceLink(row.resourceType, row.resourceId);
 
               return (
-                <>
+                <React.Fragment key={id}>
                   <tr key={id} style={{ verticalAlign: 'top' }}>
                     <td style={{ paddingTop: 10 }}>
                       <ActionBadge action={row.action} />
@@ -277,7 +280,7 @@ export default function AuditLogsPage(): React.ReactElement {
                       </td>
                     </tr>
                   ) : null}
-                </>
+                </React.Fragment>
               );
             })}
           </tbody>
