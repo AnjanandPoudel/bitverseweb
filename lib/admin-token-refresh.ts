@@ -29,7 +29,7 @@ async function performRefresh(): Promise<string | null> {
     return null;
   }
   const base = getApiBaseUrl();
-  const url = `${base}/api/v1/auth/refresh-token`;
+  const url = `${base}/auth/refresh-token`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {

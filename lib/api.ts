@@ -60,7 +60,7 @@ async function executeApiRequest<T>(path: string, options: IApiRequestOptions): 
   const base = getApiBaseUrl();
   const method = options.method ?? 'GET';
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  const url = `${base}/api/v1${normalizedPath}${buildQueryString(options.query)}`;
+  const url = `${base}${normalizedPath}${buildQueryString(options.query)}`;
   const headers: Record<string, string> = {
     Accept: 'application/json',
   };
