@@ -1063,6 +1063,10 @@ table.admin-table {
     display: none;
   }
 
+  .hidden-on-mobile {
+    display: none;
+  }
+
   .lp-hero {
     min-height: 70vh;
   }
@@ -1093,5 +1097,29 @@ table.admin-table {
 
   .lp-programs-grid {
     grid-template-columns: 1fr;
+  }
+
+  .enroll-container{
+    transform: scale(0.9);
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .enroll-container .form-select {
+    width: 100%;
+    height: 38px;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0f172a;
+    cursor: pointer;
+    padding-right: 20px;
   }
 }

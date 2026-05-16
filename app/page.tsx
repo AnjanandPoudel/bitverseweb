@@ -60,7 +60,7 @@ export default function LandingPage(): React.ReactElement {
         <div className="lp-nav-inner">
           <Link href="/" className="lp-logo-link">
             <Image src="/logo.jpeg" alt="Bitverse Tuition Center" width={48} height={48} className="lp-logo-img" />
-            <span className="lp-logo-text">Bitverse <span className="lp-logo-accent">Tuition</span></span>
+            <span className="lp-logo-text hidden-on-mobile">Bitverse <span className="lp-logo-accent">Tuition</span></span>
           </Link>
           <nav className="lp-nav-links">
             <a href="#why-us">Why Us</a>
@@ -68,7 +68,7 @@ export default function LandingPage(): React.ReactElement {
             <a href="#timings">Timings</a>
             <a href="#contact">Contact</a>
           </nav>
-          <EnrollDropdown />
+          <EnrollDropdown text="Enroll Now" />
         </div>
       </header>
 
@@ -94,7 +94,9 @@ export default function LandingPage(): React.ReactElement {
             Bitverse Tuition Center connects dedicated teachers with students in Naubise. Small batches, flexible timings, and a 3-day free trial — because your child's future matters.
           </p>
           <div className="lp-hero-actions">
-            <a href="tel:9846940545" className="btn btn-primary lp-btn-lg">Start Free Trial</a>
+            <div className="btn btn-primary">
+              <EnrollDropdown text="Start Free Trial" />
+            </div>
             <a href="#programs" className="btn lp-btn-lg lp-btn-ghost">View Programs</a>
           </div>
           <div className="lp-hero-phones">
@@ -297,6 +299,8 @@ export default function LandingPage(): React.ReactElement {
             <p className="lp-cta-sub">Claim your 3 free trial classes — no obligation, no payment required.</p>
           </div>
           <a href="tel:9846940545" className="btn btn-primary lp-btn-lg">Call Us Now</a>
+          <a href="tel:9846940545" className="lp-hero-phones">📞 9846940545</a>
+          <a href="tel:9765941104" className="lp-hero-phones">📞 9765941104</a>
         </div>
       </section>
 

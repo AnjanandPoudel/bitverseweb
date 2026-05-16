@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 
-export default function EnrollDropdown(): React.ReactElement {
+export default function EnrollDropdown({ text }: { text: string }): React.ReactElement {
   const [country, setCountry] = useState('');
   const [error, setError] = useState(false);
 
@@ -37,6 +37,7 @@ export default function EnrollDropdown(): React.ReactElement {
           borderRadius: '8px',
           border: error ? '1px solid #ef4444' : '1px solid #e2e8f0',
           transition: 'all 0.2s ease'
+          
         }}
       >
         <select 
