@@ -17,6 +17,14 @@ import { useAdminAuthStore } from '@/stores/admin-auth.store';
 const SUBJECTS = ['English', 'Nepali', 'Math', 'Science', 'Other'] as const;
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
 
+const CHARSET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+function generatePassword(length = 12): string {
+  const arr = new Uint32Array(length);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, (n) => CHARSET[n % CHARSET.length]).join('');
+}
+
 interface ITuitionInquiryDetail {
   _id?: string;
   parentFullName?: string;
@@ -169,6 +177,22 @@ function FinalizeModal({ onConfirm, onCancel, initial }: IFinalizeModalProps): R
     marginTop: '1.5rem',
   };
 
+  const genBtnStyle: React.CSSProperties = {
+    flexShrink: 0,
+    width: 34,
+    height: 34,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px solid var(--border,rgb(214, 216, 219))',
+    borderRadius: 6,
+    background: 'var(--fg, #f8fafc)',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    color: 'var(--fg, #0f172a)',
+    transition: 'background 0.15s',
+  };
+
   return (
     <div style={overlayStyle} role="dialog" aria-modal="true" aria-labelledby="finalize-modal-title">
       <div style={modalStyle}>
@@ -194,16 +218,27 @@ function FinalizeModal({ onConfirm, onCancel, initial }: IFinalizeModalProps): R
           </div>
           <div className="field">
             <label htmlFor="modal-parent-password">Temporary password</label>
-            <input
-              id="modal-parent-password"
-              type="text"
-              value={draft.parentTemporaryPassword}
-              onChange={set('parentTemporaryPassword')}
-              placeholder="Min 6 characters"
-              minLength={6}
-              maxLength={128}
-              required
-            />
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <input
+                id="modal-parent-password"
+                type="text"
+                value={draft.parentTemporaryPassword}
+                onChange={set('parentTemporaryPassword')}
+                placeholder="Min 8 characters"
+                minLength={6}
+                maxLength={128}
+                required
+                style={{ flex: 1, minWidth: 0 }}
+              />
+              <button
+                type="button"
+                title="Generate random password"
+                onClick={() => setDraft((prev) => ({ ...prev, parentTemporaryPassword: generatePassword() }))}
+                style={genBtnStyle}
+              >
+                ⟳
+              </button>
+            </div>
           </div>
 
           <p style={groupLabelStyle}>Student</p>
@@ -221,16 +256,27 @@ function FinalizeModal({ onConfirm, onCancel, initial }: IFinalizeModalProps): R
           </div>
           <div className="field">
             <label htmlFor="modal-student-password">Temporary password</label>
-            <input
-              id="modal-student-password"
-              type="text"
-              value={draft.studentTemporaryPassword}
-              onChange={set('studentTemporaryPassword')}
-              placeholder="Min 6 characters"
-              minLength={6}
-              maxLength={128}
-              required
-            />
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <input
+                id="modal-student-password"
+                type="text"
+                value={draft.studentTemporaryPassword}
+                onChange={set('studentTemporaryPassword')}
+                placeholder="Min 8 characters"
+                minLength={6}
+                maxLength={128}
+                required
+                style={{ flex: 1, minWidth: 0 }}
+              />
+              <button
+                type="button"
+                title="Generate random password"
+                onClick={() => setDraft((prev) => ({ ...prev, studentTemporaryPassword: generatePassword() }))}
+                style={genBtnStyle}
+              >
+                ⟳
+              </button>
+            </div>
           </div>
 
           <div style={actionsStyle}>
@@ -539,6 +585,22 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
     letterSpacing: '0.05em',
     color: '#1e3a8a',
     margin: '0.75rem 0 0.4rem',
+  };
+
+  const accordionGenBtnStyle: React.CSSProperties = {
+    flexShrink: 0,
+    width: 34,
+    height: 34,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px solid var(--border, #e2e8f0)',
+    borderRadius: 6,
+    background: 'var(--surface, #f8fafc)',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    color: 'var(--fg,rgb(255, 255, 255))',
+    transition: 'background 0.15s',
   };
 
   return (
@@ -910,7 +972,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
 
                     {/* Parent */}
                     <p style={credGroupLabelStyle}>Parent</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+                    <div style={{ display: 'flex',flexWrap: 'wrap', gap: '0 1rem' }}>
                       <div className="field">
                         <label htmlFor="cred-parent-email">Email</label>
                         <input
@@ -928,18 +990,36 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                       </div>
                       <div className="field">
                         <label htmlFor="cred-parent-password">Temporary password</label>
-                        <input
-                          id="cred-parent-password"
-                          type="text"
-                          value={credentials.parentTemporaryPassword}
-                          onChange={(e) =>
-                            setCredentials((prev) => ({ ...prev, parentTemporaryPassword: e.target.value }))
-                          }
-                          placeholder="Min 6 characters"
-                          maxLength={128}
-                          readOnly={isProvisioned}
-                          style={isProvisioned ? { background: '#f1f5f9', cursor: 'default' } : undefined}
-                        />
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                          <input
+                            id="cred-parent-password"
+                            type="text"
+                            value={credentials.parentTemporaryPassword}
+                            onChange={(e) =>
+                              setCredentials((prev) => ({ ...prev, parentTemporaryPassword: e.target.value }))
+                            }
+                            placeholder="Min 8 characters"
+                            maxLength={128}
+                            readOnly={isProvisioned}
+                            style={{
+                              flex: 1,
+                              minWidth: 0,
+                              ...(isProvisioned ? { background: '#f1f5f9', cursor: 'default' } : {}),
+                            }}
+                          />
+                          {!isProvisioned ? (
+                            <button
+                              type="button"
+                              title="Generate random password"
+                              onClick={() =>
+                                setCredentials((prev) => ({ ...prev, parentTemporaryPassword: generatePassword() }))
+                              }
+                              style={accordionGenBtnStyle}
+                            >
+                              ⟳
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                     {isProvisioned && parentUserId ? (
@@ -950,7 +1030,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
 
                     {/* Student */}
                     <p style={{ ...credGroupLabelStyle, marginTop: '0.75rem' }}>Student</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+                    <div style={{ display: 'flex',flexWrap: 'wrap', gap: '0 1rem' }}>
                       <div className="field">
                         <label htmlFor="cred-student-email">Email</label>
                         <input
@@ -968,18 +1048,36 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                       </div>
                       <div className="field">
                         <label htmlFor="cred-student-password">Temporary password</label>
-                        <input
-                          id="cred-student-password"
-                          type="text"
-                          value={credentials.studentTemporaryPassword}
-                          onChange={(e) =>
-                            setCredentials((prev) => ({ ...prev, studentTemporaryPassword: e.target.value }))
-                          }
-                          placeholder="Min 6 characters"
-                          maxLength={128}
-                          readOnly={isProvisioned}
-                          style={isProvisioned ? { background: '#f1f5f9', cursor: 'default' } : undefined}
-                        />
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                          <input
+                            id="cred-student-password"
+                            type="text"
+                            value={credentials.studentTemporaryPassword}
+                            onChange={(e) =>
+                              setCredentials((prev) => ({ ...prev, studentTemporaryPassword: e.target.value }))
+                            }
+                            placeholder="Min 8 characters"
+                            maxLength={128}
+                            readOnly={isProvisioned}
+                            style={{
+                              flex: 1,
+                              minWidth: 0,
+                              ...(isProvisioned ? { background: '#f1f5f9', cursor: 'default' } : {}),
+                            }}
+                          />
+                          {!isProvisioned ? (
+                            <button
+                              type="button"
+                              title="Generate random password"
+                              onClick={() =>
+                                setCredentials((prev) => ({ ...prev, studentTemporaryPassword: generatePassword() }))
+                              }
+                              style={accordionGenBtnStyle}
+                            >
+                              ⟳
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                     {isProvisioned && studentUserId ? (
