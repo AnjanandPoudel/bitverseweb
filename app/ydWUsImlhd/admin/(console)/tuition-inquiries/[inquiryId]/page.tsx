@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ApiCallError, apiRequest, type IListMeta } from '@/lib/api';
 import { toastApiSuccess } from '@/lib/mutation-feedback';
@@ -100,199 +100,6 @@ const ACTION_COLORS: Record<AuditLogAction, string> = {
   delete: '#ef4444',
 };
 
-// ─── Finalize credentials modal ──────────────────────────────────────────────
-
-interface IFinalizeModalProps {
-  onConfirm: (draft: ICredentialDraft) => void;
-  onCancel: () => void;
-  initial: ICredentialDraft;
-}
-
-function FinalizeModal({ onConfirm, onCancel, initial }: IFinalizeModalProps): React.ReactElement {
-  const [draft, setDraft] = useState<ICredentialDraft>(initial);
-  const firstInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    firstInputRef.current?.focus();
-  }, []);
-
-  const set = (field: keyof ICredentialDraft) => (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setDraft((prev) => ({ ...prev, [field]: e.target.value }));
-  };
-
-  const onSubmit = (e: FormEvent): void => {
-    e.preventDefault();
-    onConfirm(draft);
-  };
-
-  const overlayStyle: React.CSSProperties = {
-    position: 'fixed',
-    inset: 0,
-    background: 'rgba(0,0,0,0.45)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-    padding: '1rem',
-  };
-
-  const modalStyle: React.CSSProperties = {
-    background: 'var(--surface, #fff)',
-    border: '1px solid var(--border, #e2e8f0)',
-    borderRadius: 12,
-    padding: '1.5rem',
-    width: '100%',
-    maxWidth: 480,
-    boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-  };
-
-  const headingStyle: React.CSSProperties = {
-    margin: '0 0 0.25rem',
-    fontSize: '1.05rem',
-    fontWeight: 700,
-    color: 'var(--fg, #0f172a)',
-  };
-
-  const hintStyle: React.CSSProperties = {
-    margin: '0 0 1.25rem',
-    fontSize: '0.82rem',
-    color: 'var(--muted, #64748b)',
-    lineHeight: 1.5,
-  };
-
-  const groupLabelStyle: React.CSSProperties = {
-    fontSize: '0.78rem',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    color: '#1e3a8a',
-    marginBottom: '0.5rem',
-    marginTop: '0.75rem',
-  };
-
-  const actionsStyle: React.CSSProperties = {
-    display: 'flex',
-    gap: 10,
-    justifyContent: 'flex-end',
-    marginTop: '1.5rem',
-  };
-
-  const genBtnStyle: React.CSSProperties = {
-    flexShrink: 0,
-    width: 34,
-    height: 34,
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    border: '1px solid var(--border,rgb(214, 216, 219))',
-    borderRadius: 6,
-    background: 'var(--fg, #f8fafc)',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    color: 'var(--fg, #0f172a)',
-    transition: 'background 0.15s',
-  };
-
-  return (
-    <div style={overlayStyle} role="dialog" aria-modal="true" aria-labelledby="finalize-modal-title">
-      <div style={modalStyle}>
-        <p id="finalize-modal-title" style={headingStyle}>Set up account credentials</p>
-        <p style={hintStyle}>
-          Provide the login details for the parent and student accounts that will be created when you finalize this inquiry.
-          These are the credentials you will hand to the family.
-        </p>
-        <form onSubmit={onSubmit}>
-          <p style={groupLabelStyle}>Parent</p>
-          <div className="field">
-            <label htmlFor="modal-parent-email">Email</label>
-            <input
-              id="modal-parent-email"
-              ref={firstInputRef}
-              type="email"
-              value={draft.parentEmail}
-              onChange={set('parentEmail')}
-              placeholder="parent@example.com"
-              maxLength={254}
-              required
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="modal-parent-password">Temporary password</label>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <input
-                id="modal-parent-password"
-                type="text"
-                value={draft.parentTemporaryPassword}
-                onChange={set('parentTemporaryPassword')}
-                placeholder="Min 8 characters"
-                minLength={6}
-                maxLength={128}
-                required
-                style={{ flex: 1, minWidth: 0 }}
-              />
-              <button
-                type="button"
-                title="Generate random password"
-                onClick={() => setDraft((prev) => ({ ...prev, parentTemporaryPassword: generatePassword() }))}
-                style={genBtnStyle}
-              >
-                ⟳
-              </button>
-            </div>
-          </div>
-
-          <p style={groupLabelStyle}>Student</p>
-          <div className="field">
-            <label htmlFor="modal-student-email">Email</label>
-            <input
-              id="modal-student-email"
-              type="email"
-              value={draft.studentEmail}
-              onChange={set('studentEmail')}
-              placeholder="student@example.com"
-              maxLength={254}
-              required
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="modal-student-password">Temporary password</label>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <input
-                id="modal-student-password"
-                type="text"
-                value={draft.studentTemporaryPassword}
-                onChange={set('studentTemporaryPassword')}
-                placeholder="Min 8 characters"
-                minLength={6}
-                maxLength={128}
-                required
-                style={{ flex: 1, minWidth: 0 }}
-              />
-              <button
-                type="button"
-                title="Generate random password"
-                onClick={() => setDraft((prev) => ({ ...prev, studentTemporaryPassword: generatePassword() }))}
-                style={genBtnStyle}
-              >
-                ⟳
-              </button>
-            </div>
-          </div>
-
-          <div style={actionsStyle}>
-            <button type="button" className="btn" onClick={onCancel}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Confirm &amp; finalize
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function TuitionInquiryDetailPage(): React.ReactElement {
@@ -322,9 +129,9 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
 
   // ── Workflow panel state ─────────────────────────────────────────────────
   const [status, setStatus] = useState<TuitionInquiryStatusValue>('new_request');
-  const [prevStatus, setPrevStatus] = useState<TuitionInquiryStatusValue>('new_request');
   const [adminNotes, setAdminNotes] = useState('');
   const [savingWorkflow, setSavingWorkflow] = useState(false);
+  const [workflowError, setWorkflowError] = useState<string | null>(null);
 
   // ── Credential state ─────────────────────────────────────────────────────
   const [credentials, setCredentials] = useState<ICredentialDraft>({
@@ -336,9 +143,6 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
   const [isProvisioned, setIsProvisioned] = useState(false);
   const [parentUserId, setParentUserId] = useState<string | undefined>();
   const [studentUserId, setStudentUserId] = useState<string | undefined>();
-
-  // ── Finalize modal state ─────────────────────────────────────────────────
-  const [showFinalizeModal, setShowFinalizeModal] = useState(false);
 
   // ── Audit log state ──────────────────────────────────────────────────────
   const [auditLogs, setAuditLogs] = useState<IAuditLogEntry[]>([]);
@@ -382,7 +186,6 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
 
       const resolvedStatus = TUITION_INQUIRY_STATUSES.find((s) => s === data.status) ?? 'new_request';
       setStatus(resolvedStatus);
-      setPrevStatus(resolvedStatus);
       setAdminNotes(data.adminNotes ?? '');
 
       setCredentials({
@@ -436,24 +239,11 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
   };
 
   const onStatusChange = (next: TuitionInquiryStatusValue): void => {
+    setStatus(next);
     if (next === 'finalized' && !isProvisioned) {
-      // Stash the new status, open the modal — don't commit yet
-      setStatus(next);
-      setShowFinalizeModal(true);
-    } else {
-      setStatus(next);
+      setCredentialsOpen(true);
     }
-  };
-
-  const onModalConfirm = (draft: ICredentialDraft): void => {
-    setCredentials(draft);
-    setShowFinalizeModal(false);
-    setCredentialsOpen(true);
-  };
-
-  const onModalCancel = (): void => {
-    setStatus(prevStatus);
-    setShowFinalizeModal(false);
+    setWorkflowError(null);
   };
 
   const onSaveInfo = async (event: FormEvent): Promise<void> => {
@@ -493,7 +283,22 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
   const onSaveWorkflow = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
     if (!accessToken || !inquiryId) return;
+
+    if (status === 'finalized' && !isProvisioned) {
+      const missing: string[] = [];
+      if (!credentials.parentEmail.trim()) missing.push('parent email');
+      if (!credentials.parentTemporaryPassword.trim()) missing.push('parent password');
+      if (!credentials.studentEmail.trim()) missing.push('student email');
+      if (!credentials.studentTemporaryPassword.trim()) missing.push('student password');
+      if (missing.length > 0) {
+        setWorkflowError(`Please fill in the following before finalizing: ${missing.join(', ')}.`);
+        setCredentialsOpen(true);
+        return;
+      }
+    }
+
     setSavingWorkflow(true);
+    setWorkflowError(null);
     setError(null);
     try {
       const body: Record<string, unknown> = {
@@ -604,16 +409,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
   };
 
   return (
-    <>
-      {showFinalizeModal ? (
-        <FinalizeModal
-          initial={credentials}
-          onConfirm={onModalConfirm}
-          onCancel={onModalCancel}
-        />
-      ) : null}
-
-      <div>
+    <div>
         <h1 className="page-title">Tuition inquiry</h1>
         <p className="meta" style={{ marginBottom: '1rem' }}>
           <Link href={adminRoute('/tuition-inquiries')}>← Back to list</Link>
@@ -627,7 +423,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
 
         {inquiry ? (
           <>
-            {/* ── 60 / 40 side-by-side layout ── */}
+            {/* ── 60/40 side-by-side layout ── */}
             <div
               style={{
                 display: 'flex',
@@ -1089,7 +885,24 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                 ) : null}
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: '1rem' }}>
+              {workflowError ? (
+                <p
+                  style={{
+                    marginTop: '0.75rem',
+                    marginBottom: 0,
+                    padding: '8px 12px',
+                    borderRadius: 7,
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    color: '#b91c1c',
+                    fontSize: '0.83rem',
+                  }}
+                >
+                  {workflowError}
+                </p>
+              ) : null}
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: '0.75rem' }}>
                 <button type="submit" className="btn btn-primary" disabled={savingWorkflow}>
                   {savingWorkflow ? 'Saving…' : 'Save workflow'}
                 </button>
@@ -1215,7 +1028,6 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
             </div>
           </>
         ) : null}
-      </div>
-    </>
+    </div>
   );
 }
