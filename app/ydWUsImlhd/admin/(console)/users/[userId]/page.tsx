@@ -297,8 +297,8 @@ export default function UserDetailPage(): React.ReactElement {
       {error && <div className="error-banner">{error}</div>}
       {loading && !user ? <p className="meta">Loading…</p> : null}
       {user ? (
-        <>
-          <form className="panel" style={{ maxWidth: 520 }} onSubmit={(event) => void onSave(event)}>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <form className="panel" style={{ maxWidth: 620, minWidth:420, flex: 4 }} onSubmit={(event) => void onSave(event)}>
             <div className="field">
               <label htmlFor="name">Name</label>
               <input id="name" value={name} onChange={(event) => setName(event.target.value)} required minLength={2} />
@@ -360,7 +360,7 @@ export default function UserDetailPage(): React.ReactElement {
             </div>
           </form>
 
-          <div className="panel" style={{ maxWidth: 520, marginTop: '1.5rem' }}>
+          <div className="panel" style={{ maxWidth: 620,  minWidth:320, marginTop: '1.5rem', flex: 3 }}>
             <h2 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted, #6b7280)', marginBottom: '0.75rem' }}>
               Additional Details
             </h2>
@@ -394,7 +394,7 @@ export default function UserDetailPage(): React.ReactElement {
           </div>
 
           {relations !== null && (relations.parent !== null || relations.children.length > 0) ? (
-            <div className="panel" style={{ maxWidth: 640, marginTop: '1.5rem' }}>
+            <div className="panel" style={{ maxWidth: 640,  minWidth:420, marginTop: '1.5rem', flex: 3 }}>
               <h2 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted, #6b7280)', marginBottom: '1.25rem' }}>
                 Account Relations
               </h2>
@@ -455,7 +455,7 @@ export default function UserDetailPage(): React.ReactElement {
               </div>
             </div>
           ) : null}
-        </>
+        </div>
       ) : null}
     </div>
   );
