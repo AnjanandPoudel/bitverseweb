@@ -297,6 +297,9 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
   // ── Audit log state ──────────────────────────────────────────────────────
   const [auditLogs, setAuditLogs] = useState<IAuditLogEntry[]>([]);
   const [auditMeta, setAuditMeta] = useState<IListMeta | null>(null);
+  const [notesOpen, setNotesOpen] = useState(true);
+  const [credentialsOpen, setCredentialsOpen] = useState(false);
+
   const [auditPage, setAuditPage] = useState(1);
   const [auditLoading, setAuditLoading] = useState(false);
   const [expandedAuditIds, setExpandedAuditIds] = useState<Set<string>>(new Set());
@@ -345,6 +348,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
       setIsProvisioned(data.isProvisioned ?? false);
       setParentUserId(data.parentUserId);
       setStudentUserId(data.studentUserId);
+      if (data.isProvisioned) setCredentialsOpen(true);
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Failed to load inquiry.');
       setInquiry(null);
@@ -398,7 +402,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
   const onModalConfirm = (draft: ICredentialDraft): void => {
     setCredentials(draft);
     setShowFinalizeModal(false);
-    // status is already set to 'finalized'
+    setCredentialsOpen(true);
   };
 
   const onModalCancel = (): void => {
@@ -561,10 +565,19 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
 
         {inquiry ? (
           <>
-            {/* ── Module 1: Submitted information ── */}
+            {/* ── 60 / 40 side-by-side layout ── */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '1rem',
+                alignItems: 'flex-start',
+                marginBottom: '1rem',
+              }}
+            >
+            {/* ── Module 1: Submitted information (60 %) ── */}
             <form
               className="panel"
-              style={{ marginBottom: '1rem' }}
+              style={{ flex: '0 0 60%', minWidth: 0 }}
               onSubmit={(e) => void onSaveInfo(e)}
             >
               <h2 className="meta" style={{ marginTop: 0, fontSize: '0.95rem', fontWeight: 600 }}>
@@ -724,19 +737,17 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
               </div>
             </form>
 
-            {/* ── Module 2: Staff workflow ── */}
+            {/* ── Module 2: Staff workflow (40 %) ── */}
             <form
               className="panel"
-              style={{ maxWidth: 600, marginBottom: '1rem' }}
+              style={{ flex: '0 0 40%', minWidth: 0 }}
               onSubmit={(e) => void onSaveWorkflow(e)}
             >
               <h2 className="meta" style={{ marginTop: 0, fontSize: '0.95rem', fontWeight: 600 }}>
                 Staff workflow
               </h2>
-              <p className="meta" style={{ marginTop: 0 }}>
-                Update the pipeline status and leave internal notes for your team (not visible to parents).
-              </p>
 
+              {/* Status select — always visible */}
               <div className="field">
                 <label htmlFor="inq-status">Status</label>
                 <select
@@ -758,140 +769,225 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                 ) : null}
               </div>
 
-              <div className="field">
-                <label htmlFor="inq-notes">Internal notes</label>
-                <textarea
-                  id="inq-notes"
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  rows={5}
-                  placeholder="Handoff context for teammates (not shown to parents)."
-                  maxLength={4000}
-                />
+              {/* ── Accordion: Internal notes ── */}
+              <div style={{ border: '1px solid var(--border, #e2e8f0)', borderRadius: 8, marginTop: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setNotesOpen((o) => !o)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    border: 'none',
+                    borderRadius: notesOpen ? '8px 8px 0 0' : 8,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    background: 'var(--surface, #f8fafc)',
+                  }}
+                >
+                  <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--fg,rgb(255, 255, 255))' }}>
+                    Internal notes
+                  </span>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 26,
+                      height: 26,
+                      borderRadius: '50%',
+                      background: isProvisioned ? '#bbf7d0' : 'var(--border, #e2e8f0)',
+                      fontSize: '0.7rem',
+                      transition: 'transform 0.2s',
+                      transform: notesOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      flexShrink: 0,
+                    }}
+                    aria-hidden="true"
+                  >
+                    ▼
+                  </span>
+                </button>
+                {notesOpen ? (
+                  <div style={{ padding: '12px 14px', borderTop: '1px solid var(--border, #e2e8f0)' }}>
+                    <textarea
+                      id="inq-notes"
+                      value={adminNotes}
+                      onChange={(e) => setAdminNotes(e.target.value)}
+                      rows={4}
+                      placeholder="Handoff context for teammates (not shown to parents)."
+                      maxLength={4000}
+                      style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', background: 'var(--surface, #f8fafc)' , color: 'var(--fg,rgb(255, 255, 255))'  }}
+                    />
+                  </div>
+                ) : null}
               </div>
 
-              {/* ── Credentials section ── */}
-              <div
-                style={{
-                  borderTop: '1px solid var(--border, #e2e8f0)',
-                  paddingTop: '1rem',
-                  marginTop: '0.5rem',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                  <h3
-                    className="meta"
-                    style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}
-                  >
-                    Account credentials
-                  </h3>
-                  {isProvisioned ? (
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        padding: '2px 10px',
-                        borderRadius: 6,
-                        background: '#dcfce7',
-                        color: '#15803d',
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        letterSpacing: '0.04em',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      Provisioned
+              {/* ── Accordion: Account credentials ── */}
+              <div style={{ border: '1px solid var(--border, #e2e8f0)', borderRadius: 8, marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setCredentialsOpen((o) => !o)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    background: isProvisioned ? '#f0fdf4' : 'var(--surface, #f8fafc)',
+                    border: 'none',
+                    borderRadius: credentialsOpen ? '8px 8px 0 0' : 8,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--fg,rgb(255, 255, 255))' }}>
+                      Account credentials
                     </span>
-                  ) : null}
-                </div>
-                {isProvisioned ? (
-                  <p className="meta" style={{ marginTop: 0, fontSize: '0.82rem' }}>
-                    User accounts have been created. Credentials below are read-only.
-                  </p>
-                ) : (
-                  <p className="meta" style={{ marginTop: 0, fontSize: '0.82rem' }}>
-                    Fill these in before setting status to <strong>Finalized</strong>.
-                    Accounts will be created automatically when you save.
-                  </p>
-                )}
+                    {isProvisioned ? (
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: 5,
+                          background: '#dcfce7',
+                          color: '#15803d',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.04em',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Provisioned
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: 5,
+                          background: '#fef9c3',
+                          color: '#854d0e',
+                          fontSize: '0.68rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Required before finalizing
+                      </span>
+                    )}
+                  </span>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 26,
+                      height: 26,
+                      borderRadius: '50%',
+                      background: isProvisioned ? '#bbf7d0' : 'var(--border, #e2e8f0)',
+                      fontSize: '0.7rem',
+                      transition: 'transform 0.2s',
+                      transform: credentialsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      flexShrink: 0,
+                    }}
+                    aria-hidden="true"
+                  >
+                    ▼
+                  </span>
+                </button>
 
-                <p style={credGroupLabelStyle}>Parent</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
-                  <div className="field">
-                    <label htmlFor="cred-parent-email">Email</label>
-                    <input
-                      id="cred-parent-email"
-                      type="email"
-                      value={credentials.parentEmail}
-                      onChange={(e) =>
-                        setCredentials((prev) => ({ ...prev, parentEmail: e.target.value }))
-                      }
-                      placeholder="parent@example.com"
-                      maxLength={254}
-                      readOnly={isProvisioned}
-                      style={isProvisioned ? { background: 'var(--surface-alt, #f1f5f9)', cursor: 'default' } : undefined}
-                    />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="cred-parent-password">Temporary password</label>
-                    <input
-                      id="cred-parent-password"
-                      type="text"
-                      value={credentials.parentTemporaryPassword}
-                      onChange={(e) =>
-                        setCredentials((prev) => ({ ...prev, parentTemporaryPassword: e.target.value }))
-                      }
-                      placeholder="Min 6 characters"
-                      maxLength={128}
-                      readOnly={isProvisioned}
-                      style={isProvisioned ? { background: 'var(--surface-alt, #f1f5f9)', cursor: 'default' } : undefined}
-                    />
-                  </div>
-                </div>
+                {credentialsOpen ? (
+                  <div style={{ padding: '14px', borderTop: '1px solid var(--border, #e2e8f0)' }}>
+                    {isProvisioned ? (
+                      <p className="meta" style={{ marginTop: 0, marginBottom: '0.75rem', fontSize: '0.82rem' }}>
+                        User accounts have been created. Fields are read-only.
+                      </p>
+                    ) : (
+                      <p className="meta" style={{ marginTop: 0, marginBottom: '0.75rem', fontSize: '0.82rem' }}>
+                        Fill in the credentials you will give the family. Accounts are created when you save with status&nbsp;<strong>Finalized</strong>.
+                      </p>
+                    )}
 
-                {isProvisioned && parentUserId ? (
-                  <p className="meta" style={{ fontSize: '0.76rem', margin: '2px 0 8px' }}>
-                    Parent user ID: <code>{parentUserId}</code>
-                  </p>
-                ) : null}
+                    {/* Parent */}
+                    <p style={credGroupLabelStyle}>Parent</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+                      <div className="field">
+                        <label htmlFor="cred-parent-email">Email</label>
+                        <input
+                          id="cred-parent-email"
+                          type="email"
+                          value={credentials.parentEmail}
+                          onChange={(e) =>
+                            setCredentials((prev) => ({ ...prev, parentEmail: e.target.value }))
+                          }
+                          placeholder="parent@example.com"
+                          maxLength={254}
+                          readOnly={isProvisioned}
+                          style={isProvisioned ? { background: '#f1f5f9', cursor: 'default' } : undefined}
+                        />
+                      </div>
+                      <div className="field">
+                        <label htmlFor="cred-parent-password">Temporary password</label>
+                        <input
+                          id="cred-parent-password"
+                          type="text"
+                          value={credentials.parentTemporaryPassword}
+                          onChange={(e) =>
+                            setCredentials((prev) => ({ ...prev, parentTemporaryPassword: e.target.value }))
+                          }
+                          placeholder="Min 6 characters"
+                          maxLength={128}
+                          readOnly={isProvisioned}
+                          style={isProvisioned ? { background: '#f1f5f9', cursor: 'default' } : undefined}
+                        />
+                      </div>
+                    </div>
+                    {isProvisioned && parentUserId ? (
+                      <p className="meta" style={{ fontSize: '0.75rem', margin: '0 0 10px' }}>
+                        User ID: <code>{parentUserId}</code>
+                      </p>
+                    ) : null}
 
-                <p style={credGroupLabelStyle}>Student</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
-                  <div className="field">
-                    <label htmlFor="cred-student-email">Email</label>
-                    <input
-                      id="cred-student-email"
-                      type="email"
-                      value={credentials.studentEmail}
-                      onChange={(e) =>
-                        setCredentials((prev) => ({ ...prev, studentEmail: e.target.value }))
-                      }
-                      placeholder="student@example.com"
-                      maxLength={254}
-                      readOnly={isProvisioned}
-                      style={isProvisioned ? { background: 'var(--surface-alt, #f1f5f9)', cursor: 'default' } : undefined}
-                    />
+                    {/* Student */}
+                    <p style={{ ...credGroupLabelStyle, marginTop: '0.75rem' }}>Student</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+                      <div className="field">
+                        <label htmlFor="cred-student-email">Email</label>
+                        <input
+                          id="cred-student-email"
+                          type="email"
+                          value={credentials.studentEmail}
+                          onChange={(e) =>
+                            setCredentials((prev) => ({ ...prev, studentEmail: e.target.value }))
+                          }
+                          placeholder="student@example.com"
+                          maxLength={254}
+                          readOnly={isProvisioned}
+                          style={isProvisioned ? { background: '#f1f5f9', cursor: 'default' } : undefined}
+                        />
+                      </div>
+                      <div className="field">
+                        <label htmlFor="cred-student-password">Temporary password</label>
+                        <input
+                          id="cred-student-password"
+                          type="text"
+                          value={credentials.studentTemporaryPassword}
+                          onChange={(e) =>
+                            setCredentials((prev) => ({ ...prev, studentTemporaryPassword: e.target.value }))
+                          }
+                          placeholder="Min 6 characters"
+                          maxLength={128}
+                          readOnly={isProvisioned}
+                          style={isProvisioned ? { background: '#f1f5f9', cursor: 'default' } : undefined}
+                        />
+                      </div>
+                    </div>
+                    {isProvisioned && studentUserId ? (
+                      <p className="meta" style={{ fontSize: '0.75rem', margin: '0 0 4px' }}>
+                        User ID: <code>{studentUserId}</code>
+                      </p>
+                    ) : null}
                   </div>
-                  <div className="field">
-                    <label htmlFor="cred-student-password">Temporary password</label>
-                    <input
-                      id="cred-student-password"
-                      type="text"
-                      value={credentials.studentTemporaryPassword}
-                      onChange={(e) =>
-                        setCredentials((prev) => ({ ...prev, studentTemporaryPassword: e.target.value }))
-                      }
-                      placeholder="Min 6 characters"
-                      maxLength={128}
-                      readOnly={isProvisioned}
-                      style={isProvisioned ? { background: 'var(--surface-alt, #f1f5f9)', cursor: 'default' } : undefined}
-                    />
-                  </div>
-                </div>
-
-                {isProvisioned && studentUserId ? (
-                  <p className="meta" style={{ fontSize: '0.76rem', margin: '2px 0 8px' }}>
-                    Student user ID: <code>{studentUserId}</code>
-                  </p>
                 ) : null}
               </div>
 
@@ -909,6 +1005,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                 </button>
               </div>
             </form>
+            </div>{/* end 60/40 row */}
 
             {/* ── Change history ── */}
             <div className="panel" style={{ marginBottom: '1rem' }}>
