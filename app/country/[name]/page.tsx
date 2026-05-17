@@ -3,7 +3,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { TuitionInquiryForm } from '@/components/TuitionInquiryForm';
 import { ADMIN_CONSOLE_BASE_PATH } from '@/lib/routes';
-
 export const metadata: Metadata = {
   title: 'Bitverse Academy — Online tuition for students living abroad',
   description:
@@ -49,9 +48,11 @@ export default async function PublicHomePage({
             <li>3 days free trial class</li>
           </ul>
           <p className="meta" style={{ marginTop: '1rem' }}>
-            Questions? Email{' '}
-            <a href="mailto:cruserap@gmail.com">cruserap@gmail.com</a>.
+            Questions? Email us at : {' '}
+            <span style={{  color: 'white', fontWeight: '300' }}> contactus@bitverseacademy.com</span>
+            <a href="mailto:contactus@bitverseacademy.com" > Mail link</a>
           </p>
+          
         </section>
         <TuitionInquiryForm countrySlug={decodeURIComponent(name)} />
       </main>
