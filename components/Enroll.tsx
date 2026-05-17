@@ -56,7 +56,7 @@ export default function EnrollDropdown({ text }: { text: string }): React.ReactE
             height: '38px'
           }}
         >
-          <option value="" disabled>Select your country</option>
+          <option value="" disabled>Select country</option>
           <option value="japan">Japan</option>
           {/* <option value="india">India</option> */}
           <option value="canada">Canada</option>
