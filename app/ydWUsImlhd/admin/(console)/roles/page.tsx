@@ -68,7 +68,14 @@ export default function RolesListPage(): React.ReactElement {
       <p className="meta" style={{ marginBottom: '1rem' }}>
         Manage permission bundles. Click a role to edit or delete.
       </p>
-      <div className="toolbar">
+      <form
+        className="toolbar"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setSearch(searchDraft.trim());
+          setPage(1);
+        }}
+      >
         <div className="field" style={{ flex: '1 1 200px', marginBottom: 0 }}>
           <label htmlFor="role-search">Search</label>
           <input
@@ -78,20 +85,13 @@ export default function RolesListPage(): React.ReactElement {
             placeholder="Role name"
           />
         </div>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => {
-            setSearch(searchDraft.trim());
-            setPage(1);
-          }}
-        >
+        <button type="submit" className="btn btn-primary">
           Apply
         </button>
         <Link href={adminRoute('/roles/new')} className="btn btn-primary" style={{ textDecoration: 'none' }}>
           New role
         </Link>
-      </div>
+      </form>
       {error && <div className="error-banner">{error}</div>}
       <div className="panel" style={{ padding: 0, overflow: 'auto' }}>
         <table className="admin-table">

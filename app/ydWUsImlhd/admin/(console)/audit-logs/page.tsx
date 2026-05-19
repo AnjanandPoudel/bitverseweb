@@ -148,7 +148,15 @@ export default function AuditLogsPage(): React.ReactElement {
         Chronological history of all system changes — who changed what data and when.
       </p>
 
-      <div className="toolbar" style={{ marginBottom: '1rem' }}>
+      <form
+        className="toolbar"
+        style={{ marginBottom: '1rem' }}
+        onSubmit={(event) => {
+          event.preventDefault();
+          setPage(1);
+          void load();
+        }}
+>
         <div className="field" style={{ flex: '0 1 180px', marginBottom: 0 }}>
           <label htmlFor="al-action">Action</label>
           <select
@@ -175,14 +183,10 @@ export default function AuditLogsPage(): React.ReactElement {
             <option value="Role">Role</option>
           </select>
         </div>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => { setPage(1); void load(); }}
-        >
+        <button type="submit" className="btn btn-primary">
           Apply
         </button>
-      </div>
+      </form>
 
       {error && <div className="error-banner">{error}</div>}
 
