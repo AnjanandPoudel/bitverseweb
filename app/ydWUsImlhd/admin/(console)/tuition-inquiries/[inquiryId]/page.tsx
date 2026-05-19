@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { FormEvent, useCallback, useEffect, useState } from 'react';
+import React, { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ApiCallError, apiRequest, type IListMeta } from '@/lib/api';
 import { toastApiSuccess } from '@/lib/mutation-feedback';
@@ -125,12 +125,11 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
   const [actualTime, setActualTime] = useState('');
   const [availableDays, setAvailableDays] = useState<string[]>([]);
   const [messengerNumber, setMessengerNumber] = useState('');
-  const [savingInfo, setSavingInfo] = useState(false);
 
   // ── Workflow panel state ─────────────────────────────────────────────────
   const [status, setStatus] = useState<TuitionInquiryStatusValue>('new_request');
   const [adminNotes, setAdminNotes] = useState('');
-  const [savingWorkflow, setSavingWorkflow] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [workflowError, setWorkflowError] = useState<string | null>(null);
 
   // ── Credential state ─────────────────────────────────────────────────────
@@ -226,6 +225,71 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
   useEffect(() => { void loadInquiry(); }, [loadInquiry]);
   useEffect(() => { void loadAuditLogs(); }, [loadAuditLogs]);
 
+  const arraysEqual = (a: string[], b: string[]): boolean => {
+    if (a.length !== b.length) return false;
+    const sortedA = [...a].sort();
+    const sortedB = [...b].sort();
+    return sortedA.every((value, index) => value === sortedB[index]);
+  };
+
+  const hasUnsavedChanges = useMemo((): boolean => {
+    if (!inquiry) return false;
+
+    const savedStatus =
+      TUITION_INQUIRY_STATUSES.find((s) => s === inquiry.status) ?? 'new_request';
+
+    const infoChanged =
+      parentFullName !== (inquiry.parentFullName ?? '') ||
+      studentFullNames !== (inquiry.studentFullNames ?? '') ||
+      studentAge !== (inquiry.studentAge ?? '') ||
+      studentClass !== (inquiry.studentClass ?? '') ||
+      !arraysEqual(subjects, inquiry.subjects ?? []) ||
+      subjectsOther !== (inquiry.subjectsOther ?? '') ||
+      ianaTimeZone !== (inquiry.ianaTimeZone ?? '') ||
+      countrySlug !== (inquiry.countrySlug ?? '') ||
+      preferredTime !== (inquiry.preferredTime ?? '') ||
+      actualTime !== toDatetimeLocal(inquiry.actualTime) ||
+      !arraysEqual(availableDays, inquiry.availableDays ?? []) ||
+      messengerNumber !== (inquiry.messengerNumber ?? '');
+
+    const workflowChanged =
+      status !== savedStatus ||
+      adminNotes !== (inquiry.adminNotes ?? '') ||
+      (!inquiry.isProvisioned &&
+        (credentials.parentEmail !== (inquiry.parentEmail ?? '') ||
+          credentials.studentEmail !== (inquiry.studentEmail ?? '') ||
+          credentials.parentTemporaryPassword !== (inquiry.parentTemporaryPassword ?? '') ||
+          credentials.studentTemporaryPassword !== (inquiry.studentTemporaryPassword ?? '')));
+
+    return infoChanged || workflowChanged;
+  }, [
+    inquiry,
+    parentFullName,
+    studentFullNames,
+    studentAge,
+    studentClass,
+    subjects,
+    subjectsOther,
+    ianaTimeZone,
+    countrySlug,
+    preferredTime,
+    actualTime,
+    availableDays,
+    messengerNumber,
+    status,
+    adminNotes,
+    credentials,
+  ]);
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const onBeforeUnload = (event: BeforeUnloadEvent): void => {
+      event.preventDefault();
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [hasUnsavedChanges]);
+
   const toggleSubject = (subject: string): void => {
     setSubjects((prev) =>
       prev.includes(subject) ? prev.filter((s) => s !== subject) : [...prev, subject],
@@ -246,41 +310,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
     setWorkflowError(null);
   };
 
-  const onSaveInfo = async (event: FormEvent): Promise<void> => {
-    event.preventDefault();
-    if (!accessToken || !inquiryId) return;
-    setSavingInfo(true);
-    setError(null);
-    try {
-      const body: Record<string, unknown> = {
-        parentFullName: parentFullName || undefined,
-        studentFullNames: studentFullNames || undefined,
-        studentAge: studentAge || undefined,
-        studentClass: studentClass || undefined,
-        subjects: subjects.length > 0 ? subjects : undefined,
-        subjectsOther: subjectsOther || null,
-        ianaTimeZone: ianaTimeZone || undefined,
-        countrySlug: countrySlug || undefined,
-        preferredTime: preferredTime || null,
-        actualTime: actualTime ? new Date(actualTime).toISOString() : null,
-        availableDays: availableDays.length > 0 ? availableDays : undefined,
-        messengerNumber: messengerNumber || undefined,
-      };
-      const envelope = await apiRequest<ITuitionInquiryDetail>(
-        `/tuition-inquiries/${encodeURIComponent(inquiryId)}`,
-        { method: 'PATCH', token: accessToken, body },
-      );
-      toastApiSuccess(envelope, 'Inquiry information updated.');
-      await loadInquiry();
-      void loadAuditLogs();
-    } catch (err: unknown) {
-      setError(err instanceof ApiCallError ? err.message : 'Save failed.');
-    } finally {
-      setSavingInfo(false);
-    }
-  };
-
-  const onSaveWorkflow = async (event: FormEvent): Promise<void> => {
+  const onSaveAll = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
     if (!accessToken || !inquiryId) return;
 
@@ -297,11 +327,23 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
       }
     }
 
-    setSavingWorkflow(true);
+    setSaving(true);
     setWorkflowError(null);
     setError(null);
     try {
       const body: Record<string, unknown> = {
+        parentFullName: parentFullName || undefined,
+        studentFullNames: studentFullNames || undefined,
+        studentAge: studentAge || undefined,
+        studentClass: studentClass || undefined,
+        subjects: subjects.length > 0 ? subjects : undefined,
+        subjectsOther: subjectsOther || null,
+        ianaTimeZone: ianaTimeZone || undefined,
+        countrySlug: countrySlug || undefined,
+        preferredTime: preferredTime || null,
+        actualTime: actualTime ? new Date(actualTime).toISOString() : null,
+        availableDays: availableDays.length > 0 ? availableDays : undefined,
+        messengerNumber: messengerNumber || undefined,
         status,
         adminNotes,
       };
@@ -317,20 +359,20 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
         `/tuition-inquiries/${encodeURIComponent(inquiryId)}`,
         { method: 'PATCH', token: accessToken, body },
       );
-      toastApiSuccess(envelope, 'Workflow updated.');
+      toastApiSuccess(envelope, 'Inquiry saved.');
       await loadInquiry();
       void loadAuditLogs();
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Save failed.');
     } finally {
-      setSavingWorkflow(false);
+      setSaving(false);
     }
   };
 
   const onDelete = async (): Promise<void> => {
     if (!accessToken || !inquiryId) return;
     if (!window.confirm('Delete this inquiry permanently? This cannot be undone.')) return;
-    setSavingWorkflow(true);
+    setSaving(true);
     setError(null);
     try {
       const envelope = await apiRequest<unknown>(
@@ -342,7 +384,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Delete failed.');
     } finally {
-      setSavingWorkflow(false);
+      setSaving(false);
     }
   };
 
@@ -423,26 +465,26 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
 
         {inquiry ? (
           <>
+            <form onSubmit={(e) => void onSaveAll(e)}>
             {/* ── 60/40 side-by-side layout ── */}
             <div
               style={{
                 display: 'flex',
                 gap: '1rem',
                 alignItems: 'flex-start',
-                marginBottom: '1rem',
+                marginBottom: '0.75rem',
               }}
             >
             {/* ── Module 1: Submitted information (60 %) ── */}
-            <form
+            <section
               className="panel"
               style={{ flex: '0 0 60%', minWidth: 0 }}
-              onSubmit={(e) => void onSaveInfo(e)}
             >
               <h2 className="meta" style={{ marginTop: 0, fontSize: '0.95rem', fontWeight: 600 }}>
                 Submitted information
               </h2>
               <p className="meta" style={{ marginTop: 0 }}>
-                Edit the details submitted by the parent. Changes are tracked in the audit log below.
+                Edit the details submitted by the parent. Use <strong>Save changes</strong> below to persist information and workflow together.
               </p>
 
               <div className="field">
@@ -588,18 +630,12 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                 />
               </div>
 
-              <div>
-                <button type="submit" className="btn btn-primary" disabled={savingInfo}>
-                  {savingInfo ? 'Saving…' : 'Save information'}
-                </button>
-              </div>
-            </form>
+            </section>
 
             {/* ── Module 2: Staff workflow (40 %) ── */}
-            <form
+            <section
               className="panel"
               style={{ flex: '0 0 40%', minWidth: 0 }}
-              onSubmit={(e) => void onSaveWorkflow(e)}
             >
               <h2 className="meta" style={{ marginTop: 0, fontSize: '0.95rem', fontWeight: 600 }}>
                 Staff workflow
@@ -901,22 +937,48 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                   {workflowError}
                 </p>
               ) : null}
-
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: '0.75rem' }}>
-                <button type="submit" className="btn btn-primary" disabled={savingWorkflow}>
-                  {savingWorkflow ? 'Saving…' : 'Save workflow'}
-                </button>
-                <button
-                  type="button"
-                  className="btn"
-                  disabled={savingWorkflow}
-                  onClick={() => void onDelete()}
-                >
-                  Delete inquiry
-                </button>
-              </div>
-            </form>
+            </section>
             </div>{/* end 60/40 row */}
+
+            <div
+              className="panel"
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 12,
+                marginBottom: '1rem',
+                position: 'sticky',
+                bottom: 12,
+                zIndex: 2,
+              }}
+            >
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={saving || !hasUnsavedChanges}
+              >
+                {saving ? 'Saving…' : hasUnsavedChanges ? 'Save changes' : 'All changes saved'}
+              </button>
+              <button
+                type="button"
+                className="btn"
+                disabled={saving}
+                onClick={() => void onDelete()}
+              >
+                Delete inquiry
+              </button>
+              {hasUnsavedChanges ? (
+                <span className="meta" style={{ margin: 0, fontSize: '0.85rem' }}>
+                  Unsaved changes in information and/or workflow — one save updates everything.
+                </span>
+              ) : (
+                <span className="meta" style={{ margin: 0, fontSize: '0.85rem' }}>
+                  Information and workflow are saved together.
+                </span>
+              )}
+            </div>
+            </form>
 
             {/* ── Change history ── */}
             <div className="panel" style={{ marginBottom: '1rem' }}>

@@ -107,9 +107,9 @@ function RelationBox({
         {email}
       </div>
       <div style={{ fontSize: '0.7rem', color: '#3b82f6', fontWeight: 600, textTransform: 'capitalize', marginTop: 2 }}>
-        {roleName || '—'}
+        {roleName || '?'}
       </div>
-      {caption ? <RelationCardShell isSelf={false}><div style={{ fontSize: '0.65rem', color: '#9ca3af', marginTop: 4 }}>{caption}</div></RelationCardShell> : null}
+      {caption ? <div style={{ fontSize: '0.65rem', color: '#9ca3af', marginTop: 4 }}>{caption}</div> : null}
     </RelationCardShell>
   );
 
@@ -205,7 +205,7 @@ export default function UserDetailPage(): React.ReactElement {
 
   const formatDate = (iso: string | undefined): string => {
     if (!iso) {
-      return '—';
+      return '?';
     }
     const d = new Date(iso);
     return Number.isNaN(d.getTime()) ? iso : d.toLocaleString();
@@ -381,18 +381,18 @@ export default function UserDetailPage(): React.ReactElement {
     <div>
       <h1 className="page-title">Edit user</h1>
       <p className="meta" style={{ marginBottom: '1rem' }}>
-        <Link href={adminRoute('/users')}>← Back to users</Link>
+        <Link href={adminRoute('/users')}>? Back to users</Link>
         {user ? (
           <>
-            {' · '}
+            {' ? '}
             <span className="meta">ID: {userDocumentId(user)}</span>
-            {' · '}
+            {' ? '}
             <span className="meta">Current role: {formatRoleLabel(user.roleId)}</span>
           </>
         ) : null}
       </p>
       {error ? <div className="error-banner">{error}</div> : null}
-      {loading && !user ? <p className="meta">Loading…</p> : null}
+      {loading && !user ? <p className="meta">Loading?</p> : null}
       {user ? (
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <form className="panel" style={{ maxWidth: 720, minWidth: 320, flex: '1 1 420px' }} onSubmit={(event) => void onSave(event)}>
@@ -418,9 +418,9 @@ export default function UserDetailPage(): React.ReactElement {
                 ))}
               </select>
             </div>
-            <RelationCardShell isSelf={false}>
+            <div className="field">
               <label htmlFor="photo">Photo URL</label>
-              <input id="photo" value={photo} onChange={(event) => setPhoto(event.target.value)} placeholder="https://…" />
+              <input id="photo" value={photo} onChange={(event) => setPhoto(event.target.value)} placeholder="https://?" />
               {photo.trim().length > 0 ? (
                 <div style={{ marginTop: 8 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -431,7 +431,7 @@ export default function UserDetailPage(): React.ReactElement {
                   />
                 </div>
               ) : null}
-            </RelationCardShell>
+            </div>
             <div className="field">
               <label htmlFor="fcm-token">FCM token</label>
               <input id="fcm-token" value={fcmToken} onChange={(event) => setFcmToken(event.target.value)} />
@@ -514,11 +514,11 @@ export default function UserDetailPage(): React.ReactElement {
               />
             </div>
             <p className="meta" style={{ marginTop: '0.5rem' }}>
-              Created: {formatDate(user.createdAt)} · Updated: {formatDate(user.updatedAt)}
+              Created: {formatDate(user.createdAt)} ? Updated: {formatDate(user.updatedAt)}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: '1rem' }}>
               <button type="submit" className="btn btn-primary" disabled={saving}>
-                {saving ? 'Saving…' : 'Save changes'}
+                {saving ? 'Saving?' : 'Save changes'}
               </button>
               <button type="button" className="btn" disabled={saving || isSelf} onClick={() => void onDeactivate()}>
                 Deactivate user
@@ -556,7 +556,7 @@ export default function UserDetailPage(): React.ReactElement {
                       Parent
                     </div>
                     <RelationBox
-                      name={String(relations.parent.name ?? '—')}
+                      name={String(relations.parent.name ?? '\u2014')}
                       email={String(relations.parent.email ?? '')}
                       roleName={formatRoleLabel(relations.parent.roleId)}
                       isActive={relations.parent.isActive !== false}
@@ -567,7 +567,7 @@ export default function UserDetailPage(): React.ReactElement {
                 ) : null}
 
                 <RelationBox
-                  name={user.name ?? '—'}
+                  name={user.name ?? '\u2014'}
                   email={user.email ?? ''}
                   roleName={formatRoleLabel(user.roleId)}
                   isActive={isActive}
@@ -576,54 +576,31 @@ export default function UserDetailPage(): React.ReactElement {
                 />
 
                 {relations.children.length > 0 ? (
-                  <div style={{ marginTop: 8 }}>
-                    <RelationCardShell isSelf={false}>
-                      <RelationCardShell isSelf={false}>
-                        <div
-                          style={{
-                            width: 2,
-                            height: 16,
-                            background: '#d1d5db',
-                            marginLeft: 20,
-                            marginBottom: 8,
-                          }}
+                  <div style={{ marginTop: 8, paddingLeft: 24, borderLeft: '2px solid #d1d5db', marginLeft: 20 }}>
+                    <div
+                      style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        color: '#9ca3af',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        marginBottom: 8,
+                      }}
+                    >
+                      {relations.children.length === 1 ? 'Child' : `Children (${relations.children.length})`}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {relations.children.map((child) => (
+                        <RelationBox
+                          key={relationUserId(child)}
+                          name={String(child.name ?? '?')}
+                          email={String(child.email ?? '')}
+                          roleName={formatRoleLabel(child.roleId)}
+                          isActive={child.isActive !== false}
+                          href={adminRoute(`/users/${relationUserId(child)}`)}
                         />
-                      </RelationCardShell>
-                      <div
-                        style={{
-                          fontSize: '0.7rem',
-                          fontWeight: 600,
-                          color: '#9ca3af',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em',
-                          marginBottom: 8,
-                          paddingLeft: 24,
-                        }}
-                      >
-                        {relations.children.length === 1 ? 'Child' : `Children (${relations.children.length})`}
-                      </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 8,
-                          paddingLeft: 24,
-                          borderLeft: '2px solid #d1d5db',
-                          marginLeft: 20,
-                        }}
-                      >
-                        {relations.children.map((child) => (
-                          <RelationBox
-                            key={relationUserId(child)}
-                            name={String(child.name ?? '—')}
-                            email={String(child.email ?? '')}
-                            roleName={formatRoleLabel(child.roleId)}
-                            isActive={child.isActive !== false}
-                            href={adminRoute(`/users/${relationUserId(child)}`)}
-                          />
-                        ))}
-                      </div>
-                    </RelationCardShell>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
               </div>
@@ -634,3 +611,4 @@ export default function UserDetailPage(): React.ReactElement {
     </div>
   );
 }
+
