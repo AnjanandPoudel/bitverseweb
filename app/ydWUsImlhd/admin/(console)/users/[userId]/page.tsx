@@ -51,77 +51,128 @@ interface IRelationsPayload {
 }
 
 interface IRelationBoxProps {
-  label: string;
   name: string;
   email: string;
   roleName: string;
   isActive: boolean;
   isSelf?: boolean;
   href?: string;
+  caption?: string;
 }
 
-function RelationBox({ name, email, roleName, isActive, isSelf = false, href }: IRelationBoxProps): React.ReactElement {
+function RelationBox({
+  name,
+  email,
+  roleName,
+  isActive,
+  isSelf = false,
+  href,
+  caption,
+}: IRelationBoxProps): React.ReactElement {
   const inner = (
-    <div style={{
-      border: isSelf ? '2px solid #3b82f6' : '1px solid #e5e7eb',
-      borderRadius: 8,
-      padding: '10px 14px',
-      background: isSelf ? '#eff6ff' : '#fff',
-      minWidth: 180,
-      maxWidth: 240,
-      cursor: href ? 'pointer' : 'default',
-      transition: 'box-shadow 0.15s',
-    }}>
+    <RelationCardShell isSelf={isSelf}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-        <span style={{ width: 8, height: 8, borderRadius: '50%', background: isActive ? '#22c55e' : '#ef4444', flexShrink: 0, display: 'inline-block' }} />
-        <span style={{ fontWeight: 700, fontSize: '0.875rem', color: isSelf ? '#1d4ed8' : '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+        <span
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: isActive ? '#22c55e' : '#ef4444',
+            flexShrink: 0,
+            display: 'inline-block',
+          }}
+        />
+        <span
+          style={{
+            fontWeight: 700,
+            fontSize: '0.875rem',
+            color: isSelf ? '#1d4ed8' : '#111827',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {name}
+        </span>
       </div>
-      <div style={{ fontSize: '0.75rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</div>
-      <div style={{ fontSize: '0.7rem', color: '#3b82f6', fontWeight: 600, textTransform: 'capitalize', marginTop: 2 }}>{roleName || '—'}</div>
-    </div>
+      <div
+        style={{
+          fontSize: '0.75rem',
+          color: '#6b7280',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {email}
+      </div>
+      <div style={{ fontSize: '0.7rem', color: '#3b82f6', fontWeight: 600, textTransform: 'capitalize', marginTop: 2 }}>
+        {roleName || '—'}
+      </div>
+      {caption ? <RelationCardShell isSelf={false}><div style={{ fontSize: '0.65rem', color: '#9ca3af', marginTop: 4 }}>{caption}</div></RelationCardShell> : null}
+    </RelationCardShell>
   );
+
   if (href) {
-    return <a href={href} style={{ textDecoration: 'none' }}>{inner}</a>;
+    return (
+      <a href={href} style={{ textDecoration: 'none' }}>
+        {inner}
+      </a>
+    );
   }
   return inner;
 }
 
-function RelationConnector({ count, hasParent }: { count: number; hasParent: boolean }): React.ReactElement {
-  const rowH = 72;
-  const gap = 12;
-  const totalH = Math.max(1, count + (hasParent ? 1 : 0)) * (rowH + gap) - gap;
-  const midY = totalH / 2;
-  const w = 64;
-
-  const paths: string[] = [];
-  let y = rowH / 2;
-  const nodeCount = (hasParent ? 1 : 0) + count;
-  for (let i = 0; i < nodeCount; i++) {
-    const cx1 = w * 0.4;
-    const cx2 = w * 0.6;
-    paths.push(`M 0 ${midY} C ${cx1} ${midY}, ${cx2} ${y}, ${w} ${y}`);
-    y += rowH + gap;
-  }
-
+function RelationCardShell({ isSelf, children }: { isSelf: boolean; children: React.ReactNode }): React.ReactElement {
   return (
-    <svg width={w} height={totalH} style={{ overflow: 'visible', flexShrink: 0 }}>
-      {paths.map((d, i) => (
-        <path
-          key={i}
-          d={d}
-          fill="none"
-          stroke="#d1d5db"
-          strokeWidth={2}
-          markerEnd="url(#arrow)"
-        />
-      ))}
-      <defs>
-        <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-          <path d="M0,0 L0,6 L6,3 z" fill="#d1d5db" />
-        </marker>
-      </defs>
-    </svg>
+    <div
+      style={{
+        border: isSelf ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+        borderRadius: 8,
+        padding: '10px 14px',
+        background: isSelf ? '#eff6ff' : '#fff',
+        minWidth: 200,
+        maxWidth: 280,
+      }}
+    >
+      {children}
+    </div>
   );
+}
+
+function toDateTimeLocalValue(iso: string | undefined): string {
+  if (!iso) {
+    return '';
+  }
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) {
+    return '';
+  }
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromDateTimeLocalValue(value: string): string | null {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return null;
+  }
+  const d = new Date(trimmed);
+  if (Number.isNaN(d.getTime())) {
+    return null;
+  }
+  return d.toISOString();
+}
+
+function objectIdString(value: unknown): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  return String(value);
+}
+
+function relationUserId(user: IRelationUser): string {
+  return String((user as Record<string, unknown>)._id ?? '');
 }
 
 export default function UserDetailPage(): React.ReactElement {
@@ -138,6 +189,14 @@ export default function UserDetailPage(): React.ReactElement {
   const [phone, setPhone] = useState('');
   const [roleId, setRoleId] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [emailVerified, setEmailVerified] = useState(true);
+  const [photo, setPhoto] = useState('');
+  const [fcmToken, setFcmToken] = useState('');
+  const [subjectsText, setSubjectsText] = useState('');
+  const [dobLocal, setDobLocal] = useState('');
+  const [enrolledAtLocal, setEnrolledAtLocal] = useState('');
+  const [parentId, setParentId] = useState('');
+  const [classId, setClassId] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -145,7 +204,9 @@ export default function UserDetailPage(): React.ReactElement {
   const [relations, setRelations] = useState<IRelationsPayload | null>(null);
 
   const formatDate = (iso: string | undefined): string => {
-    if (!iso) return '—';
+    if (!iso) {
+      return '—';
+    }
     const d = new Date(iso);
     return Number.isNaN(d.getTime()) ? iso : d.toLocaleString();
   };
@@ -172,6 +233,14 @@ export default function UserDetailPage(): React.ReactElement {
       setPhone(data.phone ?? '');
       setRoleId(roleObjectId(data.roleId));
       setIsActive(data.isActive !== false);
+      setEmailVerified(data.emailVerified !== false);
+      setPhoto(data.photo ?? '');
+      setFcmToken(data.fcmToken ?? '');
+      setSubjectsText(Array.isArray(data.subjects) && data.subjects.length > 0 ? data.subjects.join(', ') : '');
+      setDobLocal(toDateTimeLocalValue(data.dob));
+      setEnrolledAtLocal(toDateTimeLocalValue(data.enrolledAt));
+      setParentId(objectIdString(data.parentId));
+      setClassId(objectIdString(data.classId));
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Failed to load user.');
       setUser(null);
@@ -230,16 +299,43 @@ export default function UserDetailPage(): React.ReactElement {
     setSaving(true);
     setError(null);
     try {
+      const subjects = subjectsText
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
       const body: Record<string, unknown> = {
         name,
         email,
         phone,
         roleId,
         isActive,
+        emailVerified,
+        photo,
+        fcmToken,
+        subjects,
       };
+
+      const dobIso = fromDateTimeLocalValue(dobLocal);
+      if (dobIso) {
+        body.dob = dobIso;
+      }
+
+      const enrolledIso = fromDateTimeLocalValue(enrolledAtLocal);
+      if (enrolledIso) {
+        body.enrolledAt = enrolledIso;
+      }
+
+      const trimmedParentId = parentId.trim();
+      body.parentId = trimmedParentId.length > 0 ? trimmedParentId : null;
+
+      const trimmedClassId = classId.trim();
+      body.classId = trimmedClassId.length > 0 ? trimmedClassId : null;
+
       if (newPassword.trim().length > 0) {
         body.password = newPassword;
       }
+
       const envelope = await apiRequest<IUserDetail>(`/users/${encodeURIComponent(userId)}`, {
         method: 'PATCH',
         token: accessToken,
@@ -248,6 +344,7 @@ export default function UserDetailPage(): React.ReactElement {
       toastApiSuccess(envelope, 'User updated.');
       setNewPassword('');
       await loadUser();
+      void loadRelations();
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Save failed.');
     } finally {
@@ -294,11 +391,11 @@ export default function UserDetailPage(): React.ReactElement {
           </>
         ) : null}
       </p>
-      {error && <div className="error-banner">{error}</div>}
+      {error ? <div className="error-banner">{error}</div> : null}
       {loading && !user ? <p className="meta">Loading…</p> : null}
       {user ? (
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <form className="panel" style={{ maxWidth: 620, minWidth:420, flex: 4 }} onSubmit={(event) => void onSave(event)}>
+        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          <form className="panel" style={{ maxWidth: 720, minWidth: 320, flex: '1 1 420px' }} onSubmit={(event) => void onSave(event)}>
             <div className="field">
               <label htmlFor="name">Name</label>
               <input id="name" value={name} onChange={(event) => setName(event.target.value)} required minLength={2} />
@@ -321,6 +418,66 @@ export default function UserDetailPage(): React.ReactElement {
                 ))}
               </select>
             </div>
+            <RelationCardShell isSelf={false}>
+              <label htmlFor="photo">Photo URL</label>
+              <input id="photo" value={photo} onChange={(event) => setPhoto(event.target.value)} placeholder="https://…" />
+              {photo.trim().length > 0 ? (
+                <div style={{ marginTop: 8 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={photo}
+                    alt="User photo preview"
+                    style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid #e5e7eb' }}
+                  />
+                </div>
+              ) : null}
+            </RelationCardShell>
+            <div className="field">
+              <label htmlFor="fcm-token">FCM token</label>
+              <input id="fcm-token" value={fcmToken} onChange={(event) => setFcmToken(event.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="subjects">Subjects (comma-separated)</label>
+              <input
+                id="subjects"
+                value={subjectsText}
+                onChange={(event) => setSubjectsText(event.target.value)}
+                placeholder="English, Math"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="dob">Date of birth</label>
+              <input id="dob" type="datetime-local" value={dobLocal} onChange={(event) => setDobLocal(event.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="enrolled-at">Enrolled at</label>
+              <input
+                id="enrolled-at"
+                type="datetime-local"
+                value={enrolledAtLocal}
+                onChange={(event) => setEnrolledAtLocal(event.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="parent-id">Parent ID</label>
+              <input
+                id="parent-id"
+                value={parentId}
+                onChange={(event) => setParentId(event.target.value)}
+                placeholder="24-char ObjectId or empty"
+                style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="class-id">Class ID</label>
+              <input
+                id="class-id"
+                value={classId}
+                onChange={(event) => setClassId(event.target.value)}
+                placeholder="24-char ObjectId or empty"
+                style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}
+              />
+            </div>
             <div className="field">
               <label htmlFor="active">
                 <input
@@ -335,6 +492,17 @@ export default function UserDetailPage(): React.ReactElement {
               {isSelf ? <div className="meta">You cannot deactivate your own account here.</div> : null}
             </div>
             <div className="field">
+              <label htmlFor="email-verified">
+                <input
+                  id="email-verified"
+                  type="checkbox"
+                  checked={emailVerified}
+                  onChange={(event) => setEmailVerified(event.target.checked)}
+                />{' '}
+                Email verified
+              </label>
+            </div>
+            <div className="field">
               <label htmlFor="new-password">New password (optional)</label>
               <input
                 id="new-password"
@@ -345,111 +513,117 @@ export default function UserDetailPage(): React.ReactElement {
                 placeholder="Leave blank to keep current password"
               />
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+            <p className="meta" style={{ marginTop: '0.5rem' }}>
+              Created: {formatDate(user.createdAt)} · Updated: {formatDate(user.updatedAt)}
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: '1rem' }}>
               <button type="submit" className="btn btn-primary" disabled={saving}>
                 {saving ? 'Saving…' : 'Save changes'}
               </button>
-              <button
-                type="button"
-                className="btn"
-                disabled={saving || isSelf}
-                onClick={() => void onDeactivate()}
-              >
+              <button type="button" className="btn" disabled={saving || isSelf} onClick={() => void onDeactivate()}>
                 Deactivate user
               </button>
             </div>
           </form>
 
-          <div className="panel" style={{ maxWidth: 620,  minWidth:320, marginTop: '1.5rem', flex: 3 }}>
-            <h2 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted, #6b7280)', marginBottom: '0.75rem' }}>
-              Additional Details
-            </h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-              <tbody>
-                {[
-                  { label: 'Email verified', value: user.emailVerified === true ? 'Yes' : user.emailVerified === false ? 'No' : '—' },
-                  { label: 'Photo URL', value: user.photo ?? '—' },
-                  { label: 'FCM Token', value: user.fcmToken ?? '—', mono: true },
-                  { label: 'Subjects', value: Array.isArray(user.subjects) && user.subjects.length > 0 ? user.subjects.join(', ') : '—' },
-                  { label: 'Date of birth', value: formatDate(user.dob) },
-                  { label: 'Enrolled at', value: formatDate(user.enrolledAt) },
-                  { label: 'Parent ID', value: user.parentId != null ? String(user.parentId) : '—', mono: true },
-                  { label: 'Class ID', value: user.classId != null ? String(user.classId) : '—', mono: true },
-                  { label: 'Created', value: formatDate(user.createdAt) },
-                  { label: 'Updated', value: formatDate(user.updatedAt) },
-                ].map(({ label, value, mono }) => (
-                  <tr key={label} style={{ borderBottom: '1px solid var(--color-border, #e5e7eb)' }}>
-                    <td style={{ padding: '0.5rem 0', color: 'var(--color-text-muted, #6b7280)', width: '40%', fontWeight: 500 }}>{label}</td>
-                    <td style={{ padding: '0.5rem 0', wordBreak: 'break-all', fontFamily: mono ? 'monospace' : undefined, fontSize: mono ? '0.75rem' : undefined }}>{value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {user.photo ? (
-              <div style={{ marginTop: '0.75rem' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={user.photo} alt="User photo" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid #e5e7eb' }} />
-              </div>
-            ) : null}
-          </div>
-
           {relations !== null && (relations.parent !== null || relations.children.length > 0) ? (
-            <div className="panel" style={{ maxWidth: 640,  minWidth:420, marginTop: '1.5rem', flex: 3 }}>
-              <h2 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted, #6b7280)', marginBottom: '1.25rem' }}>
-                Account Relations
+            <div className="panel" style={{ maxWidth: 360, minWidth: 280, flex: '0 1 320px' }}>
+              <h2
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  color: 'var(--color-text-muted, #6b7280)',
+                  marginBottom: '1rem',
+                }}
+              >
+                Account relations
               </h2>
-              <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                {/* Left column — centre node */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
-                  <RelationBox
-                    label="This account"
-                    name={user.name ?? '—'}
-                    email={user.email ?? ''}
-                    roleName={formatRoleLabel(user.roleId)}
-                    isActive={isActive}
-                    isSelf
-                  />
-                </div>
-
-                {/* SVG connector + right column */}
-                {relations.parent !== null || relations.children.length > 0 ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 0, flexWrap: 'wrap' }}>
-                    <RelationConnector count={Math.max(1, relations.children.length)} hasParent={relations.parent !== null} />
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      {relations.parent !== null ? (
-                        <div>
-                          <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Parent</div>
-                          <RelationBox
-                            label=""
-                            name={String(relations.parent.name ?? '—')}
-                            email={String(relations.parent.email ?? '')}
-                            roleName={formatRoleLabel(relations.parent.roleId)}
-                            isActive={relations.parent.isActive !== false}
-                            href={adminRoute(`/users/${String((relations.parent as Record<string, unknown>)._id ?? '')}`)}
-                          />
-                        </div>
-                      ) : null}
-                      {relations.children.length > 0 ? (
-                        <div>
-                          <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
-                            {relations.children.length === 1 ? 'Child' : `Children (${relations.children.length})`}
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {relations.children.map((child) => (
-                              <RelationBox
-                                key={String((child as Record<string, unknown>)._id ?? '')}
-                                label=""
-                                name={String(child.name ?? '—')}
-                                email={String(child.email ?? '')}
-                                roleName={formatRoleLabel(child.roleId)}
-                                isActive={child.isActive !== false}
-                                href={adminRoute(`/users/${String((child as Record<string, unknown>)._id ?? '')}`)}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {relations.parent !== null ? (
+                  <div style={{ marginBottom: 8 }}>
+                    <div
+                      style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        color: '#9ca3af',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        marginBottom: 6,
+                      }}
+                    >
+                      Parent
                     </div>
+                    <RelationBox
+                      name={String(relations.parent.name ?? '—')}
+                      email={String(relations.parent.email ?? '')}
+                      roleName={formatRoleLabel(relations.parent.roleId)}
+                      isActive={relations.parent.isActive !== false}
+                      href={adminRoute(`/users/${relationUserId(relations.parent)}`)}
+                    />
+                    <div style={{ width: 2, height: 20, background: '#d1d5db', marginLeft: 20, marginTop: 8 }} />
+                  </div>
+                ) : null}
+
+                <RelationBox
+                  name={user.name ?? '—'}
+                  email={user.email ?? ''}
+                  roleName={formatRoleLabel(user.roleId)}
+                  isActive={isActive}
+                  isSelf
+                  caption="This account"
+                />
+
+                {relations.children.length > 0 ? (
+                  <div style={{ marginTop: 8 }}>
+                    <RelationCardShell isSelf={false}>
+                      <RelationCardShell isSelf={false}>
+                        <div
+                          style={{
+                            width: 2,
+                            height: 16,
+                            background: '#d1d5db',
+                            marginLeft: 20,
+                            marginBottom: 8,
+                          }}
+                        />
+                      </RelationCardShell>
+                      <div
+                        style={{
+                          fontSize: '0.7rem',
+                          fontWeight: 600,
+                          color: '#9ca3af',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          marginBottom: 8,
+                          paddingLeft: 24,
+                        }}
+                      >
+                        {relations.children.length === 1 ? 'Child' : `Children (${relations.children.length})`}
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 8,
+                          paddingLeft: 24,
+                          borderLeft: '2px solid #d1d5db',
+                          marginLeft: 20,
+                        }}
+                      >
+                        {relations.children.map((child) => (
+                          <RelationBox
+                            key={relationUserId(child)}
+                            name={String(child.name ?? '—')}
+                            email={String(child.email ?? '')}
+                            roleName={formatRoleLabel(child.roleId)}
+                            isActive={child.isActive !== false}
+                            href={adminRoute(`/users/${relationUserId(child)}`)}
+                          />
+                        ))}
+                      </div>
+                    </RelationCardShell>
                   </div>
                 ) : null}
               </div>
