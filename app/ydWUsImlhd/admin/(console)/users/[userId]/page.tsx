@@ -20,6 +20,11 @@ interface IUserDetail {
   photo?: string;
   fcmToken?: string;
   subjects?: string[];
+  age?: string;
+  grade?: string;
+  ianaTimeZone?: string;
+  countrySlug?: string;
+  availableDays?: string[];
   dob?: string;
   enrolledAt?: string;
   parentId?: unknown;
@@ -193,6 +198,11 @@ export default function UserDetailPage(): React.ReactElement {
   const [photo, setPhoto] = useState('');
   const [fcmToken, setFcmToken] = useState('');
   const [subjectsText, setSubjectsText] = useState('');
+  const [age, setAge] = useState('');
+  const [grade, setGrade] = useState('');
+  const [ianaTimeZone, setIanaTimeZone] = useState('');
+  const [countrySlug, setCountrySlug] = useState('');
+  const [availableDaysText, setAvailableDaysText] = useState('');
   const [dobLocal, setDobLocal] = useState('');
   const [enrolledAtLocal, setEnrolledAtLocal] = useState('');
   const [parentId, setParentId] = useState('');
@@ -237,6 +247,13 @@ export default function UserDetailPage(): React.ReactElement {
       setPhoto(data.photo ?? '');
       setFcmToken(data.fcmToken ?? '');
       setSubjectsText(Array.isArray(data.subjects) && data.subjects.length > 0 ? data.subjects.join(', ') : '');
+      setAge(data.age ?? '');
+      setGrade(data.grade ?? '');
+      setIanaTimeZone(data.ianaTimeZone ?? '');
+      setCountrySlug(data.countrySlug ?? '');
+      setAvailableDaysText(
+        Array.isArray(data.availableDays) && data.availableDays.length > 0 ? data.availableDays.join(', ') : '',
+      );
       setDobLocal(toDateTimeLocalValue(data.dob));
       setEnrolledAtLocal(toDateTimeLocalValue(data.enrolledAt));
       setParentId(objectIdString(data.parentId));
@@ -303,6 +320,10 @@ export default function UserDetailPage(): React.ReactElement {
         .split(',')
         .map((s) => s.trim())
         .filter((s) => s.length > 0);
+      const availableDays = availableDaysText
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
 
       const body: Record<string, unknown> = {
         name,
@@ -314,6 +335,11 @@ export default function UserDetailPage(): React.ReactElement {
         photo,
         fcmToken,
         subjects,
+        age: age.trim().length > 0 ? age.trim() : undefined,
+        grade: grade.trim().length > 0 ? grade.trim() : undefined,
+        ianaTimeZone: ianaTimeZone.trim().length > 0 ? ianaTimeZone.trim() : undefined,
+        countrySlug: countrySlug.trim().length > 0 ? countrySlug.trim() : undefined,
+        availableDays: availableDays.length > 0 ? availableDays : undefined,
       };
 
       const dobIso = fromDateTimeLocalValue(dobLocal);
@@ -443,6 +469,41 @@ export default function UserDetailPage(): React.ReactElement {
                 value={subjectsText}
                 onChange={(event) => setSubjectsText(event.target.value)}
                 placeholder="English, Math"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="age">Age</label>
+              <input id="age" value={age} onChange={(event) => setAge(event.target.value)} placeholder="e.g. 10" />
+            </div>
+            <div className="field">
+              <label htmlFor="grade">Grade / class</label>
+              <input id="grade" value={grade} onChange={(event) => setGrade(event.target.value)} placeholder="e.g. Grade 5" />
+            </div>
+            <div className="field">
+              <label htmlFor="iana-time-zone">Time zone (IANA)</label>
+              <input
+                id="iana-time-zone"
+                value={ianaTimeZone}
+                onChange={(event) => setIanaTimeZone(event.target.value)}
+                placeholder="Asia/Kathmandu"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="country-slug">Country slug</label>
+              <input
+                id="country-slug"
+                value={countrySlug}
+                onChange={(event) => setCountrySlug(event.target.value)}
+                placeholder="japan"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="available-days">Available days (comma-separated)</label>
+              <input
+                id="available-days"
+                value={availableDaysText}
+                onChange={(event) => setAvailableDaysText(event.target.value)}
+                placeholder="Monday, Wednesday"
               />
             </div>
             <div className="field">
