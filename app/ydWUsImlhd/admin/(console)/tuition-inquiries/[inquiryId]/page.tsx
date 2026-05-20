@@ -17,9 +17,9 @@ import { useAdminAuthStore } from '@/stores/admin-auth.store';
 const SUBJECTS = ['English', 'Nepali', 'Math', 'Science', 'Other'] as const;
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
 
-const CHARSET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const CHARSET = 'abcdefghjkmnpqrstuvwxyz0123456789';
 
-function generatePassword(length = 12): string {
+function generatePassword(length = 8): string {
   const arr = new Uint32Array(length);
   crypto.getRandomValues(arr);
   return Array.from(arr, (n) => CHARSET[n % CHARSET.length]).join('');
@@ -78,6 +78,20 @@ interface ICredentialDraft {
   studentEmail: string;
   parentTemporaryPassword: string;
   studentTemporaryPassword: string;
+  amount: string;
+  invoiceDate: string;
+}
+
+function computeDefaultInvoiceDateInput(actualTimeIso: string | undefined): string {
+  if (!actualTimeIso) {
+    return '';
+  }
+  const base = new Date(actualTimeIso);
+  if (Number.isNaN(base.getTime())) {
+    return '';
+  }
+  const nextMonth = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + 1, base.getUTCDate()));
+  return nextMonth.toISOString().slice(0, 10);
 }
 
 function formatDateTime(value: string | undefined): string {
@@ -138,6 +152,8 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
     studentEmail: '',
     parentTemporaryPassword: '',
     studentTemporaryPassword: '',
+    amount: '',
+    invoiceDate: '',
   });
   const [isProvisioned, setIsProvisioned] = useState(false);
   const [parentUserId, setParentUserId] = useState<string | undefined>();
@@ -192,6 +208,8 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
         studentEmail: data.studentEmail ?? '',
         parentTemporaryPassword: data.parentTemporaryPassword ?? '',
         studentTemporaryPassword: data.studentTemporaryPassword ?? '',
+        amount: '',
+        invoiceDate: computeDefaultInvoiceDateInput(data.actualTime),
       });
       setIsProvisioned(data.isProvisioned ?? false);
       setParentUserId(data.parentUserId);
@@ -224,6 +242,18 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
 
   useEffect(() => { void loadInquiry(); }, [loadInquiry]);
   useEffect(() => { void loadAuditLogs(); }, [loadAuditLogs]);
+
+  useEffect(() => {
+    if (isProvisioned || !actualTime) {
+      return;
+    }
+    setCredentials((prev) => {
+      if (prev.invoiceDate.trim().length > 0) {
+        return prev;
+      }
+      return { ...prev, invoiceDate: computeDefaultInvoiceDateInput(new Date(actualTime).toISOString()) };
+    });
+  }, [actualTime, isProvisioned]);
 
   const arraysEqual = (a: string[], b: string[]): boolean => {
     if (a.length !== b.length) return false;
@@ -259,7 +289,9 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
         (credentials.parentEmail !== (inquiry.parentEmail ?? '') ||
           credentials.studentEmail !== (inquiry.studentEmail ?? '') ||
           credentials.parentTemporaryPassword !== (inquiry.parentTemporaryPassword ?? '') ||
-          credentials.studentTemporaryPassword !== (inquiry.studentTemporaryPassword ?? '')));
+          credentials.studentTemporaryPassword !== (inquiry.studentTemporaryPassword ?? '') ||
+          credentials.amount.trim().length > 0 ||
+          credentials.invoiceDate.trim().length > 0));
 
     return infoChanged || workflowChanged;
   }, [
@@ -320,6 +352,10 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
       if (!credentials.parentTemporaryPassword.trim()) missing.push('parent password');
       if (!credentials.studentEmail.trim()) missing.push('student email');
       if (!credentials.studentTemporaryPassword.trim()) missing.push('student password');
+      const amountValue = Number.parseFloat(credentials.amount);
+      if (!credentials.amount.trim() || Number.isNaN(amountValue) || amountValue <= 0) {
+        missing.push('finalized amount');
+      }
       if (missing.length > 0) {
         setWorkflowError(`Please fill in the following before finalizing: ${missing.join(', ')}.`);
         setCredentialsOpen(true);
@@ -353,6 +389,16 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
         body.studentEmail = credentials.studentEmail.trim() || null;
         body.parentTemporaryPassword = credentials.parentTemporaryPassword.trim() || null;
         body.studentTemporaryPassword = credentials.studentTemporaryPassword.trim() || null;
+      }
+
+      if (status === 'finalized' && !isProvisioned) {
+        const amountValue = Number.parseFloat(credentials.amount);
+        if (!Number.isNaN(amountValue) && amountValue > 0) {
+          body.amount = amountValue;
+        }
+        if (credentials.invoiceDate.trim()) {
+          body.invoiceDate = new Date(`${credentials.invoiceDate}T00:00:00.000Z`).toISOString();
+        }
       }
 
       const envelope = await apiRequest<ITuitionInquiryDetail>(
@@ -916,6 +962,42 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                       <p className="meta" style={{ fontSize: '0.75rem', margin: '0 0 4px' }}>
                         User ID: <code>{studentUserId}</code>
                       </p>
+                    ) : null}
+
+                    {!isProvisioned ? (
+                      <>
+                        <p style={{ ...credGroupLabelStyle, marginTop: '1rem' }}>Invoice (on finalize)</p>
+                        <p className="meta" style={{ marginTop: 0, marginBottom: '0.75rem', fontSize: '0.82rem' }}>
+                          An invoice is generated automatically when you finalize. Invoice date defaults to one month after the confirmed session time.
+                        </p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0 1rem' }}>
+                          <div className="field">
+                            <label htmlFor="cred-amount">Finalized amount</label>
+                            <input
+                              id="cred-amount"
+                              type="number"
+                              min={1}
+                              step="0.01"
+                              value={credentials.amount}
+                              onChange={(e) =>
+                                setCredentials((prev) => ({ ...prev, amount: e.target.value }))
+                              }
+                              placeholder="e.g. 5000"
+                            />
+                          </div>
+                          <div className="field">
+                            <label htmlFor="cred-invoice-date">Invoice date</label>
+                            <input
+                              id="cred-invoice-date"
+                              type="date"
+                              value={credentials.invoiceDate}
+                              onChange={(e) =>
+                                setCredentials((prev) => ({ ...prev, invoiceDate: e.target.value }))
+                              }
+                            />
+                          </div>
+                        </div>
+                      </>
                     ) : null}
                   </div>
                 ) : null}
