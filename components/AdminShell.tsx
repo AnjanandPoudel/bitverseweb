@@ -85,6 +85,7 @@ export function AdminShell(props: IAdminShellProps): React.ReactElement | null {
           {navLink(adminRoute('/users'), 'Users')}
           {navLink(adminRoute('/roles'), 'Roles')}
           {navLink(adminRoute('/tuition-inquiries'), 'Tuition inquiries')}
+          {navLink(adminRoute('/teacher-inquiries'), 'Teacher inquiries')}
           {navLink(adminRoute('/audit-logs'), 'Audit Log')}
         </nav>
       </aside>

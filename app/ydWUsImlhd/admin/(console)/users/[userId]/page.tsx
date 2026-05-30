@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
@@ -8,6 +8,7 @@ import { toastApiSuccess } from '@/lib/mutation-feedback';
 import { formatRoleLabel, roleObjectId, userDocumentId } from '@/lib/format-user';
 import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
+import { TeacherSwotPanel } from '@/components/TeacherSwotPanel';
 
 interface IUserDetail {
   _id?: unknown;
@@ -403,7 +404,10 @@ export default function UserDetailPage(): React.ReactElement {
 
   const isSelf = currentUserId !== '' && currentUserId === userId;
 
+  const isTeacher = formatRoleLabel(user?.roleId).toLowerCase() === 'teacher';
+
   return (
+
     <div>
       <h1 className="page-title">Edit user</h1>
       <p className="meta" style={{ marginBottom: '1rem' }}>
@@ -667,6 +671,7 @@ export default function UserDetailPage(): React.ReactElement {
               </div>
             </div>
           ) : null}
+          <TeacherSwotPanel userId={userId} isTeacher={isTeacher} />
         </div>
       ) : null}
     </div>
