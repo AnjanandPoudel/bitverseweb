@@ -2,14 +2,12 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+import { AdminListToolbar } from '@/components/AdminListToolbar';
+import { PaginationBar } from '@/components/PaginationBar';
+import { useAdminListFilters } from '@/hooks/use-admin-list-filters';
 import { ApiCallError, apiRequest, type IListMeta } from '@/lib/api';
 import { adminRoute } from '@/lib/routes';
-import {
-  TUITION_INQUIRY_STATUSES,
-  tuitionInquiryStatusLabel,
-  type TuitionInquiryStatusValue,
-} from '@/lib/tuition-inquiry-workflow';
-import { PaginationBar } from '@/components/PaginationBar';
+import { tuitionInquiryStatusLabel, type TuitionInquiryStatusValue } from '@/lib/tuition-inquiry-workflow';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
 interface ITuitionInquiryRow {
@@ -42,6 +40,8 @@ const statusColor = (status: TuitionInquiryStatusValue): string | undefined => {
       return 'lightgreen';
     case 'closed_without_deal':
       return 'red';
+    default:
+      return undefined;
   }
 };
 
@@ -49,12 +49,22 @@ export default function TuitionInquiriesListPage(): React.ReactElement {
   const accessToken = useAdminAuthStore((state) => state.accessToken);
   const [items, setItems] = useState<ITuitionInquiryRow[]>([]);
   const [meta, setMeta] = useState<IListMeta | null>(null);
-  const [page, setPage] = useState(1);
-  const [searchDraft, setSearchDraft] = useState('');
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<TuitionInquiryStatusValue | ''>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const {
+    schema,
+    schemaError,
+    searchDraft,
+    setSearchDraft,
+    filterDraft,
+    setFilterDraftValue,
+    page,
+    setPage,
+    query,
+    applyFilters,
+    clearFilters,
+    hasAppliedFilters,
+  } = useAdminListFilters('tuition-inquiries', accessToken, PAGE_SIZE);
 
   const load = useCallback(async (): Promise<void> => {
     if (!accessToken) {
@@ -65,12 +75,7 @@ export default function TuitionInquiriesListPage(): React.ReactElement {
     try {
       const envelope = await apiRequest<IListPayload>('/tuition-inquiries', {
         token: accessToken,
-        query: {
-          page,
-          limit: PAGE_SIZE,
-          search: search || undefined,
-          status: statusFilter || undefined,
-        },
+        query,
       });
       const payload = envelope.data;
       setItems(payload?.items ?? []);
@@ -80,7 +85,7 @@ export default function TuitionInquiriesListPage(): React.ReactElement {
     } finally {
       setLoading(false);
     }
-  }, [accessToken, page, search, statusFilter]);
+  }, [accessToken, query]);
 
   useEffect(() => {
     void load();
@@ -94,47 +99,19 @@ export default function TuitionInquiriesListPage(): React.ReactElement {
       <p className="meta" style={{ marginBottom: '1rem' }}>
         Online tuition leads from the public form. Open a row to update status and internal notes for your team.
       </p>
-      <form
-        className="toolbar"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setSearch(searchDraft.trim());
-          setPage(1);
-        }}
-      >
-        <div className="field" style={{ flex: '1 1 200px', marginBottom: 0 }}>
-          <label htmlFor="inq-search">Search</label>
-          <input
-            id="inq-search"
-            value={searchDraft}
-            onChange={(event) => setSearchDraft(event.target.value)}
-            placeholder="Parent name, messenger, students"
-          />
-        </div>
-        <div className="field" style={{ flex: '0 1 200px', marginBottom: 0 }}>
-          <label htmlFor="inq-status">Status</label>
-          <select
-            id="inq-status"
-            value={statusFilter}
-            style={{ color: statusColor(statusFilter as TuitionInquiryStatusValue), border: '1px solid #2d3a4a', margin: '0.5rem', padding: '0.5rem 0.65rem' }}
-            onChange={(event) => {
-              setStatusFilter(event.target.value as TuitionInquiryStatusValue | '');
-              setPage(1);
-            }}
-          >
-            <option value="">All</option>
-            {TUITION_INQUIRY_STATUSES.map((value) => (
-              <option key={value} value={value}>
-                {tuitionInquiryStatusLabel(value)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button type="submit" className="btn btn-primary">
-          Apply
-        </button>
-      </form>
-      {error && <div className="error-banner">{error}</div>}
+      <AdminListToolbar
+        schema={schema}
+        searchDraft={searchDraft}
+        onSearchDraftChange={setSearchDraft}
+        filterDraft={filterDraft}
+        onFilterDraftChange={setFilterDraftValue}
+        onApply={applyFilters}
+        onClear={clearFilters}
+        disabled={loading}
+        hasAppliedFilters={hasAppliedFilters}
+      />
+      {schemaError ? <div className="error-banner">{schemaError}</div> : null}
+      {error ? <div className="error-banner">{error}</div> : null}
       <div className="panel" style={{ padding: 0, overflow: 'auto' }}>
         <table className="admin-table">
           <thead>
@@ -174,7 +151,12 @@ export default function TuitionInquiriesListPage(): React.ReactElement {
                   <td>{row.parentFullName}</td>
                   <td>{row.messengerNumber}</td>
                   <td>
-                    <span className="badge badge-ok" style={{ color: statusColor(statusKey as TuitionInquiryStatusValue) }}>{tuitionInquiryStatusLabel(statusKey)}</span>
+                    <span
+                      className="badge badge-ok"
+                      style={{ color: statusColor(statusKey as TuitionInquiryStatusValue) }}
+                    >
+                      {tuitionInquiryStatusLabel(statusKey)}
+                    </span>
                   </td>
                   <td className="meta">{createdLabel}</td>
                   <td>

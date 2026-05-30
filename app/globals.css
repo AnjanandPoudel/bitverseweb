@@ -249,6 +249,60 @@ table.admin-table {
   margin-bottom: 1rem;
 }
 
+.admin-list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+}
+
+.admin-list-toolbar__search {
+  flex: 1 1 220px;
+  margin-bottom: 0;
+}
+
+.admin-list-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.admin-filter-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+  flex: 2 1 320px;
+}
+
+.admin-filter-panel .field {
+  flex: 0 1 180px;
+  margin-bottom: 0;
+}
+
+.admin-filter-panel__range {
+  flex: 1 1 260px;
+}
+
+.admin-filter-panel__range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-filter-panel__range-inputs input {
+  flex: 1 1 100px;
+  min-width: 0;
+}
+
+.admin-filter-panel__range-separator {
+  color: var(--muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
 .error-banner {
   padding: 0.65rem 0.85rem;
   border-radius: 8px;

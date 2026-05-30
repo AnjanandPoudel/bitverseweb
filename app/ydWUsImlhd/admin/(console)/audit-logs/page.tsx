@@ -1,12 +1,15 @@
 'use client';
+
+import Link from 'next/link';
 import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { ApiCallError, apiRequest, type IListMeta } from '@/lib/api';
-import { PaginationBar } from '@/components/PaginationBar';
+import { AdminListToolbar } from '@/components/AdminListToolbar';
 import { FieldDiff } from '@/components/FieldDiff';
-import { useAdminAuthStore } from '@/stores/admin-auth.store';
+import { PaginationBar } from '@/components/PaginationBar';
+import { useAdminListFilters } from '@/hooks/use-admin-list-filters';
+import { ApiCallError, apiRequest, type IListMeta } from '@/lib/api';
 import { adminRoute } from '@/lib/routes';
-import Link from 'next/link';
+import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
 type AuditLogAction = 'create' | 'update' | 'delete';
 
@@ -78,12 +81,23 @@ export default function AuditLogsPage(): React.ReactElement {
   const accessToken = useAdminAuthStore((state) => state.accessToken);
   const [items, setItems] = useState<IAuditLogRow[]>([]);
   const [meta, setMeta] = useState<IListMeta | null>(null);
-  const [page, setPage] = useState(1);
-  const [actionFilter, setActionFilter] = useState<AuditLogAction | ''>('');
-  const [resourceTypeFilter, setResourceTypeFilter] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const {
+    schema,
+    schemaError,
+    searchDraft,
+    setSearchDraft,
+    filterDraft,
+    setFilterDraftValue,
+    page,
+    setPage,
+    query,
+    applyFilters,
+    clearFilters,
+    hasAppliedFilters,
+  } = useAdminListFilters('audit-logs', accessToken, PAGE_SIZE);
 
   const load = useCallback(async (): Promise<void> => {
     if (!accessToken) return;
@@ -92,12 +106,7 @@ export default function AuditLogsPage(): React.ReactElement {
     try {
       const envelope = await apiRequest<IListPayload>('/audit-logs', {
         token: accessToken,
-        query: {
-          page,
-          limit: PAGE_SIZE,
-          action: actionFilter || undefined,
-          resourceType: resourceTypeFilter.trim() || undefined,
-        },
+        query,
       });
       setItems(envelope.data?.items ?? []);
       setMeta(envelope.meta ?? null);
@@ -106,7 +115,7 @@ export default function AuditLogsPage(): React.ReactElement {
     } finally {
       setLoading(false);
     }
-  }, [accessToken, page, actionFilter, resourceTypeFilter]);
+  }, [accessToken, query]);
 
   useEffect(() => {
     void load();
@@ -148,47 +157,20 @@ export default function AuditLogsPage(): React.ReactElement {
         Chronological history of all system changes — who changed what data and when.
       </p>
 
-      <form
-        className="toolbar"
-        style={{ marginBottom: '1rem' }}
-        onSubmit={(event) => {
-          event.preventDefault();
-          setPage(1);
-          void load();
-        }}
->
-        <div className="field" style={{ flex: '0 1 180px', marginBottom: 0 }}>
-          <label htmlFor="al-action">Action</label>
-          <select
-            id="al-action"
-            value={actionFilter}
-            onChange={(e) => { setActionFilter(e.target.value as AuditLogAction | ''); setPage(1); }}
-          >
-            <option value="">All actions</option>
-            <option value="create">Create</option>
-            <option value="update">Update</option>
-            <option value="delete">Delete</option>
-          </select>
-        </div>
-        <div className="field" style={{ flex: '0 1 220px', marginBottom: 0 }}>
-          <label htmlFor="al-resource">Resource type</label>
-          <select
-            id="al-resource"
-            value={resourceTypeFilter}
-            onChange={(e) => { setResourceTypeFilter(e.target.value); setPage(1); }}
-          >
-            <option value="">All resources</option>
-            <option value="TuitionInquiry">Tuition Inquiry</option>
-            <option value="User">User</option>
-            <option value="Role">Role</option>
-          </select>
-        </div>
-        <button type="submit" className="btn btn-primary">
-          Apply
-        </button>
-      </form>
+      <AdminListToolbar
+        schema={schema}
+        searchDraft={searchDraft}
+        onSearchDraftChange={setSearchDraft}
+        filterDraft={filterDraft}
+        onFilterDraftChange={setFilterDraftValue}
+        onApply={applyFilters}
+        onClear={clearFilters}
+        disabled={loading}
+        hasAppliedFilters={hasAppliedFilters}
+      />
 
-      {error && <div className="error-banner">{error}</div>}
+      {schemaError ? <div className="error-banner">{schemaError}</div> : null}
+      {error ? <div className="error-banner">{error}</div> : null}
 
       <div className="panel" style={{ padding: 0 }}>
         <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
@@ -226,7 +208,7 @@ export default function AuditLogsPage(): React.ReactElement {
 
               return (
                 <React.Fragment key={id}>
-                  <tr key={id} style={{ verticalAlign: 'top' }}>
+                  <tr style={{ verticalAlign: 'top' }}>
                     <td style={{ paddingTop: 10 }}>
                       <ActionBadge action={row.action} />
                     </td>
@@ -274,7 +256,7 @@ export default function AuditLogsPage(): React.ReactElement {
                     </td>
                   </tr>
                   {(isMinimal || isExpanded) && diffCount > 0 ? (
-                    <tr key={`${id}-diff`} style={{ background: 'var(--surface)' }}>
+                    <tr style={{ background: 'var(--surface)' }}>
                       <td colSpan={6} style={{ padding: '4px 12px 10px' }}>
                         <FieldDiff
                           previousState={row.previousState}

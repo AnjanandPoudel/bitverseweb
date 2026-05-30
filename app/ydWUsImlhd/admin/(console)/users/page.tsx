@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+import { AdminListToolbar } from '@/components/AdminListToolbar';
+import { PaginationBar } from '@/components/PaginationBar';
+import { useAdminListFilters } from '@/hooks/use-admin-list-filters';
 import { ApiCallError, apiRequest, type IListMeta } from '@/lib/api';
 import { formatRoleLabel, userDocumentId } from '@/lib/format-user';
 import { adminRoute } from '@/lib/routes';
-import { PaginationBar } from '@/components/PaginationBar';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
 interface IUserRow {
@@ -26,11 +28,22 @@ export default function UsersListPage(): React.ReactElement {
   const accessToken = useAdminAuthStore((state) => state.accessToken);
   const [items, setItems] = useState<IUserRow[]>([]);
   const [meta, setMeta] = useState<IListMeta | null>(null);
-  const [page, setPage] = useState(1);
-  const [searchDraft, setSearchDraft] = useState('');
-  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const {
+    schema,
+    schemaError,
+    searchDraft,
+    setSearchDraft,
+    filterDraft,
+    setFilterDraftValue,
+    page,
+    setPage,
+    query,
+    applyFilters,
+    clearFilters,
+    hasAppliedFilters,
+  } = useAdminListFilters('users', accessToken, PAGE_SIZE);
 
   const load = useCallback(async (): Promise<void> => {
     if (!accessToken) {
@@ -41,7 +54,7 @@ export default function UsersListPage(): React.ReactElement {
     try {
       const envelope = await apiRequest<IUsersListPayload>('/users', {
         token: accessToken,
-        query: { page, limit: PAGE_SIZE, search: search || undefined },
+        query,
       });
       const payload = envelope.data;
       setItems(payload?.items ?? []);
@@ -51,7 +64,7 @@ export default function UsersListPage(): React.ReactElement {
     } finally {
       setLoading(false);
     }
-  }, [accessToken, page, search]);
+  }, [accessToken, query]);
 
   useEffect(() => {
     void load();
@@ -65,31 +78,23 @@ export default function UsersListPage(): React.ReactElement {
       <p className="meta" style={{ marginBottom: '1rem' }}>
         Manage accounts, roles, and passwords. Click a row to edit details.
       </p>
-      <form
-        className="toolbar"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setSearch(searchDraft.trim());
-          setPage(1);
-        }}
+      <AdminListToolbar
+        schema={schema}
+        searchDraft={searchDraft}
+        onSearchDraftChange={setSearchDraft}
+        filterDraft={filterDraft}
+        onFilterDraftChange={setFilterDraftValue}
+        onApply={applyFilters}
+        onClear={clearFilters}
+        disabled={loading}
+        hasAppliedFilters={hasAppliedFilters}
       >
-        <div className="field" style={{ flex: '1 1 200px', marginBottom: 0 }}>
-          <label htmlFor="user-search">Search</label>
-          <input
-            id="user-search"
-            value={searchDraft}
-            onChange={(event) => setSearchDraft(event.target.value)}
-            placeholder="Name or email"
-          />
-        </div>
-        <button type="submit" className="btn btn-primary">
-          Apply
-        </button>
         <Link href={adminRoute('/users/new')} className="btn btn-primary" style={{ textDecoration: 'none' }}>
           New user
         </Link>
-      </form>
-      {error && <div className="error-banner">{error}</div>}
+      </AdminListToolbar>
+      {schemaError ? <div className="error-banner">{schemaError}</div> : null}
+      {error ? <div className="error-banner">{error}</div> : null}
       <div className="panel" style={{ padding: 0, overflow: 'auto' }}>
         <table className="admin-table">
           <thead>
