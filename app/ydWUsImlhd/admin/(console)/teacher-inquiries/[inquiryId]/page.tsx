@@ -20,10 +20,18 @@ interface ITeacherInquiryDetail {
   _id?: string;
   fullName?: string;
   phone?: string;
+  messengerNumber?: string;
   subjects?: string[];
   subjectsOther?: string;
   ianaTimeZone?: string;
   countrySlug?: string;
+  city?: string;
+  education?: string;
+  teachingExperience?: string;
+  yearsOfExperience?: string;
+  languagesSpoken?: string;
+  dateOfBirth?: string;
+  portfolioUrl?: string;
   preferredTime?: string;
   actualTime?: string;
   availableDays?: string[];
@@ -245,9 +253,27 @@ export default function TeacherInquiryDetailPage(): React.ReactElement {
 
         <section className="meta" style={{ lineHeight: 1.6 }}>
           <div><strong>Phone:</strong> {inquiry.phone}</div>
+          {inquiry.messengerNumber ? <div><strong>Messenger:</strong> {inquiry.messengerNumber}</div> : null}
           <div><strong>Subjects:</strong> {(inquiry.subjects ?? []).join(', ')}</div>
+          {inquiry.subjectsOther ? <div><strong>Other subjects:</strong> {inquiry.subjectsOther}</div> : null}
+          <div><strong>Country:</strong> {inquiry.countrySlug}</div>
+          {inquiry.city ? <div><strong>City:</strong> {inquiry.city}</div> : null}
           <div><strong>Time zone:</strong> {inquiry.ianaTimeZone}</div>
           <div><strong>Available days:</strong> {(inquiry.availableDays ?? []).join(', ')}</div>
+          {inquiry.preferredTime ? <div><strong>Preferred times:</strong> {inquiry.preferredTime}</div> : null}
+          {inquiry.education ? <div><strong>Education:</strong> {inquiry.education}</div> : null}
+          {inquiry.yearsOfExperience ? <div><strong>Experience (years):</strong> {inquiry.yearsOfExperience}</div> : null}
+          {inquiry.teachingExperience ? <div><strong>Experience summary:</strong> {inquiry.teachingExperience}</div> : null}
+          {inquiry.languagesSpoken ? <div><strong>Languages:</strong> {inquiry.languagesSpoken}</div> : null}
+          {inquiry.dateOfBirth ? <div><strong>Date of birth:</strong> {inquiry.dateOfBirth}</div> : null}
+          {inquiry.portfolioUrl ? (
+            <div>
+              <strong>Portfolio:</strong>{' '}
+              <a href={inquiry.portfolioUrl} target="_blank" rel="noopener noreferrer">
+                {inquiry.portfolioUrl}
+              </a>
+            </div>
+          ) : null}
         </section>
 
         {workflowError ? <div className="error-banner">{workflowError}</div> : null}

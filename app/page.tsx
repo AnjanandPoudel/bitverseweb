@@ -356,6 +356,7 @@ export default function LandingPage(): React.ReactElement {
           </div>
           <p className="lp-footer-tagline">Personal Attention, Real Results — Online</p>
           <div className="lp-footer-links">
+            <Link href="/teacher/inquiry">Apply to teach</Link>
             <a href="https://www.facebook.com/BitverseTech" target="_blank" rel="noopener noreferrer">Facebook</a>
             <a href="https://www.youtube.com/@Bitverse-Tuition" target="_blank" rel="noopener noreferrer">YouTube</a>
             <a href="https://www.tiktok.com/@bitverse.tuition?_r=1&_t=ZS-96P11muDM3h" target="_blank" rel="noopener noreferrer">TikTok</a>
