@@ -137,7 +137,7 @@ export function TeacherSwotPanel(props: ITeacherSwotPanelProps): React.ReactElem
       setStats(next);
       setDraft(next);
       setEditing(false);
-      toastApiSuccess(envelope.message ?? 'Teacher stats updated');
+      toastApiSuccess(envelope, 'Teacher stats updated');
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Failed to save teacher stats.');
     } finally {

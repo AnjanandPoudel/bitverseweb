@@ -265,7 +265,7 @@ export default function LandingPage(): React.ReactElement {
         <span className="lp-timing-icon">🌆</span>
         <div>
           <div className="lp-timing-session">After-School & Evening Batches</div>
-          <div className="lp-timing-time">Perfect for winding down after the day ends</div>.
+          <div className="lp-timing-time">Perfect for winding down after the day ends</div>
         </div>
       </div>
 

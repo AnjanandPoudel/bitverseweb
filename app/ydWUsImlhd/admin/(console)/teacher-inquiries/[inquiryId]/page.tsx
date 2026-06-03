@@ -145,7 +145,7 @@ export default function TeacherInquiryDetailPage(): React.ReactElement {
           },
         },
       );
-      toastApiSuccess(envelope.message ?? 'Inquiry updated');
+      toastApiSuccess(envelope, 'Inquiry updated');
       await loadInquiry();
     } catch (err: unknown) {
       setWorkflowError(err instanceof ApiCallError ? err.message : 'Failed to save inquiry.');
