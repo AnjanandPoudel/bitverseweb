@@ -5,10 +5,8 @@ import { ApiCallError } from '@/lib/api';
 import { COUNTRY_SLUG_TO_IANA_TIMEZONE, resolveIanaTimeZoneForCountrySlug } from '@/lib/country-tuition-timezones';
 import {
   submitTeacherInquiry,
-  TEACHER_DAY_OPTIONS,
   TEACHER_GENDER_OPTIONS,
   TEACHER_SUBJECT_OPTIONS,
-  type TTeacherDayOption,
   type TTeacherGenderOption,
   type TTeacherSubjectOption,
 } from '@/lib/teacher-inquiry.client';
@@ -151,10 +149,9 @@ export function TeacherInquiryForm(): ReactElement {
   const [teachingExperience, setTeachingExperience] = useState('');
   const [languagesSpoken, setLanguagesSpoken] = useState('');
   const [portfolioUrl, setPortfolioUrl] = useState('');
+  const [fluentInEnglish, setFluentInEnglish] = useState('');
   const [subjects, setSubjects] = useState<TTeacherSubjectOption[]>([]);
   const [subjectsOther, setSubjectsOther] = useState('');
-  const [preferredTime, setPreferredTime] = useState('');
-  const [availableDays, setAvailableDays] = useState<TTeacherDayOption[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -167,8 +164,8 @@ export function TeacherInquiryForm(): ReactElement {
       setError('Select at least one subject you can teach.');
       return;
     }
-    if (availableDays.length === 0) {
-      setError('Select at least one day you are available.');
+    if (fluentInEnglish === '') {
+      setError('Please rate your English fluency from 0 to 5.');
       return;
     }
     if (subjects.includes('Other') && subjectsOther.trim().length === 0) {
@@ -195,16 +192,15 @@ export function TeacherInquiryForm(): ReactElement {
         subjectsOther: subjects.includes('Other') ? subjectsOther.trim() : undefined,
         ianaTimeZone,
         countrySlug: countrySlug.trim().toLowerCase(),
-        preferredTime: preferredTime.trim() || undefined,
-        availableDays,
         gender: gender || undefined,
-        city: city.trim() || undefined,
+        city: city.trim(),
+        fluentInEnglish: Number(fluentInEnglish),
         education: education.trim() || undefined,
         yearsOfExperience: yearsOfExperience.trim() || undefined,
         teachingExperience: teachingExperience.trim() || undefined,
         languagesSpoken: languagesSpoken.trim() || undefined,
         messengerNumber: messengerNumber.trim() || undefined,
-        dateOfBirth: dateOfBirth.trim() || undefined,
+        dateOfBirth: dateOfBirth.trim(),
         portfolioUrl: portfolioUrl.trim() || undefined,
       });
       setShowSuccess(true);
@@ -222,10 +218,9 @@ export function TeacherInquiryForm(): ReactElement {
       setTeachingExperience('');
       setLanguagesSpoken('');
       setPortfolioUrl('');
+      setFluentInEnglish('');
       setSubjects([]);
       setSubjectsOther('');
-      setPreferredTime('');
-      setAvailableDays([]);
     } catch (err: unknown) {
       setError(err instanceof ApiCallError ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -341,12 +336,13 @@ export function TeacherInquiryForm(): ReactElement {
         </div>
 
         <div className="field">
-          <label htmlFor="teacher-dob">Date of birth (optional)</label>
+          <label htmlFor="teacher-dob">Date of birth</label>
           <input
             id="teacher-dob"
             type="date"
             value={dateOfBirth}
             onChange={(event) => setDateOfBirth(event.target.value)}
+            required
           />
         </div>
 
@@ -373,13 +369,36 @@ export function TeacherInquiryForm(): ReactElement {
         </div>
 
         <div className="field">
-          <label htmlFor="teacher-city">City / area (optional)</label>
+          <label htmlFor="teacher-city">City / area</label>
           <input
             id="teacher-city"
             value={city}
             onChange={(event) => setCity(event.target.value)}
+            required
+            minLength={1}
             maxLength={120}
           />
+        </div>
+
+        <div className="field">
+          <label htmlFor="teacher-fluent-english">English fluency (0–5)</label>
+          <select
+            id="teacher-fluent-english"
+            value={fluentInEnglish}
+            onChange={(event) => setFluentInEnglish(event.target.value)}
+            required
+          >
+            <option value="">— Select —</option>
+            <option value="0">0 — None</option>
+            <option value="1">1 — Basic</option>
+            <option value="2">2 — Elementary</option>
+            <option value="3">3 — Intermediate</option>
+            <option value="4">4 — Advanced</option>
+            <option value="5">5 — Fluent / native</option>
+          </select>
+          <p className="meta" style={{ marginTop: '0.35rem' }}>
+            0 = no English, 5 = fluent or native speaker.
+          </p>
         </div>
 
         <div className="field">
@@ -467,34 +486,6 @@ export function TeacherInquiryForm(): ReactElement {
             />
           </div>
         ) : null}
-
-        <div className="field">
-          <label htmlFor="teacher-preferred-time">Preferred teaching times</label>
-          <input
-            id="teacher-preferred-time"
-            type="text"
-            value={preferredTime}
-            onChange={(event) => setPreferredTime(event.target.value)}
-            maxLength={300}
-            placeholder="e.g. Weekday evenings, 6–9 PM NPT, flexible weekends"
-          />
-        </div>
-
-        <div className="field">
-          <span className="meta tuition-field-heading">Available days</span>
-          <div className="checkbox-grid">
-            {TEACHER_DAY_OPTIONS.map((day) => (
-              <label key={day} className="checkbox-tile">
-                <input
-                  type="checkbox"
-                  checked={availableDays.includes(day)}
-                  onChange={() => setAvailableDays((previous) => toggleInList(previous, day))}
-                />
-                <span>{day}</span>
-              </label>
-            ))}
-          </div>
-        </div>
 
         <button type="submit" className="btn btn-primary" disabled={loading}>
           {loading ? 'Submitting…' : 'Submit application'}

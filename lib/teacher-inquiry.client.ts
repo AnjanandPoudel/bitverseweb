@@ -25,18 +25,17 @@ export interface ITeacherInquirySubmitBody {
   password: string;
   subjects: TTeacherSubjectOption[];
   subjectsOther?: string;
-  preferredTime?: string;
   ianaTimeZone: string;
   countrySlug: string;
-  availableDays: TTeacherDayOption[];
+  city: string;
+  dateOfBirth: string;
+  fluentInEnglish: number;
   gender?: TTeacherGenderOption;
-  city?: string;
   education?: string;
   teachingExperience?: string;
   yearsOfExperience?: string;
   languagesSpoken?: string;
   messengerNumber?: string;
-  dateOfBirth?: string;
   portfolioUrl?: string;
 }
 

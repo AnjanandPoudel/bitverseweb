@@ -32,6 +32,7 @@ interface ITeacherInquiryDetail {
   languagesSpoken?: string;
   dateOfBirth?: string;
   portfolioUrl?: string;
+  fluentInEnglish?: number;
   preferredTime?: string;
   actualTime?: string;
   availableDays?: string[];
@@ -259,7 +260,12 @@ export default function TeacherInquiryDetailPage(): React.ReactElement {
           <div><strong>Country:</strong> {inquiry.countrySlug}</div>
           {inquiry.city ? <div><strong>City:</strong> {inquiry.city}</div> : null}
           <div><strong>Time zone:</strong> {inquiry.ianaTimeZone}</div>
-          <div><strong>Available days:</strong> {(inquiry.availableDays ?? []).join(', ')}</div>
+          {inquiry.fluentInEnglish !== undefined && inquiry.fluentInEnglish !== null ? (
+            <div><strong>English fluency:</strong> {inquiry.fluentInEnglish}/5</div>
+          ) : null}
+          {(inquiry.availableDays ?? []).length > 0 ? (
+            <div><strong>Available days:</strong> {(inquiry.availableDays ?? []).join(', ')}</div>
+          ) : null}
           {inquiry.preferredTime ? <div><strong>Preferred times:</strong> {inquiry.preferredTime}</div> : null}
           {inquiry.education ? <div><strong>Education:</strong> {inquiry.education}</div> : null}
           {inquiry.yearsOfExperience ? <div><strong>Experience (years):</strong> {inquiry.yearsOfExperience}</div> : null}
