@@ -1,4 +1,4 @@
-import EnrollDropdown from '@/components/Enroll';
+import { EnrollDropdown } from '@/components/Enroll';
 import { FbVideoEmbed } from '@/components/FbVideoEmbed';
 import type { Metadata } from 'next';
 import Image from 'next/image';
@@ -107,7 +107,7 @@ export default function LandingPage(): React.ReactElement {
                   className="tiktok-embed"
                   cite="https://www.tiktok.com/@bitverse.tuition/photo/7634230446410272008"
                   data-video-id="7634230446410272008"
-                  style={{ maxWidth: '325px', minWidth: '280px', margin: 0 }}
+                  style={{ maxWidth: '325px', width: '100%', margin: 0 }}
                 >
                   <section>
                     <a target="_blank" rel="noopener noreferrer" href="https://www.tiktok.com/@bitverse.tuition?refer=embed">@bitverse.tuition</a>
@@ -128,7 +128,7 @@ export default function LandingPage(): React.ReactElement {
                   className="tiktok-embed"
                   cite="https://www.tiktok.com/@urmilaadhikaripou/video/7618611825583623442"
                   data-video-id="7618611825583623442"
-                  style={{ maxWidth: '325px', minWidth: '280px', margin: 0 }}
+                  style={{ maxWidth: '325px', width: '100%', margin: 0 }}
                 >
                   <section>
                     <a target="_blank" rel="noopener noreferrer" href="https://www.tiktok.com/@urmilaadhikaripou?refer=embed">@urmilaadhikaripou</a>
@@ -149,7 +149,7 @@ export default function LandingPage(): React.ReactElement {
                   className="tiktok-embed"
                   cite="https://www.tiktok.com/@urmilaadhikaripou/video/7638261168649342228"
                   data-video-id="7638261168649342228"
-                  style={{ maxWidth: '325px', minWidth: '280px', margin: 0 }}
+                  style={{ maxWidth: '325px', width: '100%', margin: 0 }}
                 >
                   <section>
                     <a target="_blank" rel="noopener noreferrer" href="https://www.tiktok.com/@urmilaadhikaripou?refer=embed">@urmilaadhikaripou</a>
@@ -342,8 +342,10 @@ export default function LandingPage(): React.ReactElement {
             <p className="lp-cta-sub">Claim your 3 free online trial classes — no obligation, no payment required.</p>
           </div>
           <a href="tel:9846940545" className="btn btn-primary lp-btn-lg">Call / WhatsApp Us</a>
-          <a href="tel:9846940545" className="lp-hero-phones">📞 9846940545</a>
-          <a href="tel:9765941104" className="lp-hero-phones">📞 9765941104</a>
+          <div className="lp-cta-phones">
+            <a href="tel:9846940545">📞 9846940545</a>
+            <a href="tel:9765941104">📞 9765941104</a>
+          </div>
         </div>
       </section>
 

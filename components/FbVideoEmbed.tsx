@@ -16,16 +16,17 @@ export function FbVideoEmbed({ reelId, coverSrc, coverAlt = 'Video cover' }: IFb
 
   return (
     <div className="lp-video-wrapper">
-      {!loaded && (
+      {!loaded ? (
         <div className="lp-video-cover">
           <Image src={coverSrc} alt={coverAlt} fill className="lp-video-cover-img" />
           <div className="lp-video-play-btn">▶</div>
         </div>
-      )}
+      ) : null}
       <iframe
         src={src}
         width="325"
         height="560"
+        className="lp-fb-iframe"
         style={{ border: 'none', overflow: 'hidden', borderRadius: '12px', display: 'block' }}
         scrolling="no"
         frameBorder={0}

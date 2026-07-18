@@ -424,8 +424,8 @@ export default function UserDetailPage(): React.ReactElement {
       {error ? <div className="error-banner">{error}</div> : null}
       {loading && !user ? <p className="meta">Loading?</p> : null}
       {user ? (
-        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-          <form className="panel" style={{ maxWidth: 720, minWidth: 320, flex: '1 1 420px' }} onSubmit={(event) => void onSave(event)}>
+        <div className="admin-split">
+          <form className="panel admin-user-form" onSubmit={(event) => void onSave(event)}>
             <div className="field">
               <label htmlFor="name">Name</label>
               <input id="name" value={name} onChange={(event) => setName(event.target.value)} required minLength={2} />
@@ -592,7 +592,7 @@ export default function UserDetailPage(): React.ReactElement {
           </form>
 
           {relations !== null && (relations.parent !== null || relations.children.length > 0) ? (
-            <div className="panel" style={{ maxWidth: 360, minWidth: 280, flex: '0 1 320px' }}>
+            <div className="panel admin-user-side">
               <h2
                 style={{
                   fontSize: '0.875rem',

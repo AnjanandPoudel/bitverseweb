@@ -11,12 +11,26 @@ interface IAdminShellProps {
   children: ReactNode;
 }
 
+interface INavItem {
+  href: string;
+  label: string;
+}
+
+const NAV_ITEMS: readonly INavItem[] = [
+  { href: adminRoute('/users'), label: 'Users' },
+  { href: adminRoute('/roles'), label: 'Roles' },
+  { href: adminRoute('/tuition-inquiries'), label: 'Tuition inquiries' },
+  { href: adminRoute('/teacher-inquiries'), label: 'Teacher inquiries' },
+  { href: adminRoute('/audit-logs'), label: 'Audit Log' },
+] as const;
+
 export function AdminShell(props: IAdminShellProps): React.ReactElement | null {
   const { children } = props;
   const router = useRouter();
   const pathname = usePathname();
   const accessToken = useAdminAuthStore((state) => state.accessToken);
   const [hydrated, setHydrated] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (useAdminAuthStore.persist.hasHydrated()) {
@@ -37,9 +51,30 @@ export function AdminShell(props: IAdminShellProps): React.ReactElement | null {
     }
   }, [accessToken, hydrated, router]);
 
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileNavOpen) {
+      return;
+    }
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        setMobileNavOpen(false);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [mobileNavOpen]);
+
   if (!hydrated) {
     return (
-      <div style={{ padding: '2rem', color: 'var(--muted)' }} aria-busy="true">
+      <div className="admin-shell-loading" aria-busy="true">
         Loading session…
       </div>
     );
@@ -54,56 +89,70 @@ export function AdminShell(props: IAdminShellProps): React.ReactElement | null {
     return (
       <Link
         href={href}
-        style={{
-          padding: '0.5rem 0.65rem',
-          borderRadius: 8,
-          color: 'var(--text)',
-          fontSize: '0.9rem',
-          background: active ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
-          border: active ? '1px solid var(--accent)' : '1px solid transparent',
-          textDecoration: 'none',
-        }}
+        className={`admin-nav-link${active ? ' admin-nav-link--active' : ''}`}
+        onClick={() => setMobileNavOpen(false)}
       >
         {label}
       </Link>
     );
   };
 
+  const navContent = (
+    <>
+      <div className="admin-sidebar-title">Administration</div>
+      <nav className="admin-sidebar-nav" aria-label="Admin">
+        {NAV_ITEMS.map((item) => navLink(item.href, item.label))}
+      </nav>
+    </>
+  );
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <aside
-        style={{
-          width: 220,
-          flexShrink: 0,
-          borderRight: '1px solid var(--border)',
-          padding: '1rem',
-          background: 'var(--surface)',
-        }}
-      >
-        <div style={{ fontWeight: 700, marginBottom: '1rem', fontSize: '0.95rem' }}>Administration</div>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {navLink(adminRoute('/users'), 'Users')}
-          {navLink(adminRoute('/roles'), 'Roles')}
-          {navLink(adminRoute('/tuition-inquiries'), 'Tuition inquiries')}
-          {navLink(adminRoute('/teacher-inquiries'), 'Teacher inquiries')}
-          {navLink(adminRoute('/audit-logs'), 'Audit Log')}
-        </nav>
-      </aside>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <header
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            gap: 12,
-            padding: '0.65rem 1.25rem',
-            borderBottom: '1px solid var(--border)',
-            background: 'var(--surface)',
-          }}
-        >
+    <div className="admin-shell">
+      <aside className="admin-sidebar admin-sidebar--desktop">{navContent}</aside>
+
+      {mobileNavOpen ? (
+        <div className="admin-drawer-root">
+          <button
+            type="button"
+            className="admin-drawer-backdrop"
+            aria-label="Close navigation"
+            onClick={() => setMobileNavOpen(false)}
+          />
+          <aside className="admin-sidebar admin-sidebar--drawer" id="admin-mobile-nav">
+            <div className="admin-drawer-header">
+              <span className="admin-sidebar-title">Administration</span>
+              <button
+                type="button"
+                className="btn admin-drawer-close"
+                aria-label="Close navigation"
+                onClick={() => setMobileNavOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <nav className="admin-sidebar-nav" aria-label="Admin">
+              {NAV_ITEMS.map((item) => navLink(item.href, item.label))}
+            </nav>
+          </aside>
+        </div>
+      ) : null}
+
+      <div className="admin-shell-main">
+        <header className="admin-topbar">
+          <button
+            type="button"
+            className="btn admin-menu-btn"
+            aria-label="Open navigation"
+            aria-expanded={mobileNavOpen}
+            aria-controls="admin-mobile-nav"
+            onClick={() => setMobileNavOpen(true)}
+          >
+            ☰ Menu
+          </button>
+          <div className="admin-topbar-spacer" />
           <ProfileMenu />
         </header>
-        <div style={{ padding: '1.25rem', flex: 1 }}>{children}</div>
+        <div className="admin-content">{children}</div>
       </div>
     </div>
   );

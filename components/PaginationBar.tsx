@@ -15,7 +15,7 @@ export function PaginationBar(props: IPaginationBarProps): ReactElement {
   const canNext = page < totalPages;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: '1rem' }}>
+    <div className="pagination-bar">
       <button type="button" className="btn" disabled={disabled || !canPrev} onClick={() => onPageChange(page - 1)}>
         Previous
       </button>

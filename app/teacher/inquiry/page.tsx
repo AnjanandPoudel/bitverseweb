@@ -20,12 +20,12 @@ export default function TeacherInquiryPage(): React.ReactElement {
               alt="Bitverse Technologies"
               width={36}
               height={36}
-              style={{ borderRadius: '6px', objectFit: 'contain' }}
+              style={{ borderRadius: '6px', objectFit: 'contain', flexShrink: 0 }}
             />
-            Bitverse Academy — Teach with us
+            <span className="public-brand-text">Bitverse Academy — Teach with us</span>
           </Link>
           <Link href="/" className="btn public-admin-link">
-            Back to home
+            Home
           </Link>
         </div>
       </header>
@@ -43,9 +43,7 @@ export default function TeacherInquiryPage(): React.ReactElement {
           </ul>
           <p className="meta" style={{ marginTop: '1rem' }}>
             Questions? Email{' '}
-            <a href="mailto:contactus@bitverseacademy.com" style={{ color: 'inherit' }}>
-              contactus@bitverseacademy.com
-            </a>
+            <a href="mailto:contactus@bitverseacademy.com">contactus@bitverseacademy.com</a>
           </p>
         </section>
         <TeacherInquiryForm />

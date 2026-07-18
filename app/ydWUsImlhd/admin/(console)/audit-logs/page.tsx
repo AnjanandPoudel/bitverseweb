@@ -172,7 +172,7 @@ export default function AuditLogsPage(): React.ReactElement {
       {schemaError ? <div className="error-banner">{schemaError}</div> : null}
       {error ? <div className="error-banner">{error}</div> : null}
 
-      <div className="panel" style={{ padding: 0 }}>
+      <div className="panel admin-table-wrap">
         <table className="admin-table" style={{ tableLayout: 'fixed', width: '100%' }}>
           <colgroup>
             <col style={{ width: '80px' }} />

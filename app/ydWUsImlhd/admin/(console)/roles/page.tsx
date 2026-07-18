@@ -98,7 +98,7 @@ export default function RolesListPage(): React.ReactElement {
       </AdminListToolbar>
       {schemaError ? <div className="error-banner">{schemaError}</div> : null}
       {error ? <div className="error-banner">{error}</div> : null}
-      <div className="panel" style={{ padding: 0, overflow: 'auto' }}>
+      <div className="panel admin-table-wrap">
         <table className="admin-table">
           <thead>
             <tr>

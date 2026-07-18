@@ -513,19 +513,9 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
           <>
             <form onSubmit={(e) => void onSaveAll(e)}>
             {/* ── 60/40 side-by-side layout ── */}
-            <div
-              style={{
-                display: 'flex',
-                gap: '1rem',
-                alignItems: 'flex-start',
-                marginBottom: '0.75rem',
-              }}
-            >
+            <div className="admin-split admin-inquiry-split">
             {/* ── Module 1: Submitted information (60 %) ── */}
-            <section
-              className="panel"
-              style={{ flex: '0 0 60%', minWidth: 0 }}
-            >
+            <section className="panel admin-inquiry-main">
               <h2 className="meta" style={{ marginTop: 0, fontSize: '0.95rem', fontWeight: 600 }}>
                 Submitted information
               </h2>
@@ -553,7 +543,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+              <div className="admin-form-grid-2">
                 <div className="field">
                   <label htmlFor="inq-age">Student age</label>
                   <input
@@ -603,7 +593,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                 </div>
               ) : null}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+              <div className="admin-form-grid-2">
                 <div className="field">
                   <label htmlFor="inq-preferred-time">Preferred session time</label>
                   <input
@@ -679,10 +669,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
             </section>
 
             {/* ── Module 2: Staff workflow (40 %) ── */}
-            <section
-              className="panel"
-              style={{ flex: '0 0 40%', minWidth: 0 }}
-            >
+            <section className="panel admin-inquiry-side">
               <h2 className="meta" style={{ marginTop: 0, fontSize: '0.95rem', fontWeight: 600 }}>
                 Staff workflow
               </h2>

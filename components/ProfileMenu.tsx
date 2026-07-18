@@ -60,7 +60,8 @@ export function ProfileMenu(): ReactElement {
             position: 'absolute',
             right: 0,
             top: '110%',
-            minWidth: 260,
+            minWidth: 220,
+            maxWidth: 'min(280px, calc(100vw - 1.5rem))',
             zIndex: 20,
             boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
           }}

@@ -24,6 +24,13 @@ body {
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
+  overflow-x: clip;
+}
+
+img,
+video,
+iframe {
+  max-width: 100%;
 }
 
 a {
@@ -44,7 +51,8 @@ input,
 textarea,
 select {
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  max-width: 100%;
 }
 
 code,
@@ -450,12 +458,31 @@ table.admin-table {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .public-brand {
   font-weight: 700;
   font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  color: inherit;
+  text-decoration: none;
+}
+
+.public-brand:hover {
+  text-decoration: none;
+}
+
+.public-brand-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .public-admin-link {
@@ -511,8 +538,219 @@ table.admin-table {
 
 .checkbox-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 0.45rem;
+}
+
+.tuition-form .btn-primary {
+  width: 100%;
+  min-height: 44px;
+  font-size: 1rem;
+  margin-top: 0.35rem;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+/* ── Enroll control ── */
+.enroll-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.enroll-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  padding: 4px 6px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: border-color 0.2s ease;
+  max-width: 100%;
+}
+
+.enroll-container--error {
+  border-color: #ef4444;
+}
+
+.enroll-select {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+  cursor: pointer;
+  padding-right: 8px;
+  height: 38px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.enroll-go-btn {
+  height: 38px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.enroll-error {
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 500;
+  position: absolute;
+  bottom: -20px;
+  left: 6px;
+  white-space: nowrap;
+}
+
+/* ── Admin shell ── */
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-shell-loading {
+  padding: 2rem;
+  color: var(--muted);
+}
+
+.admin-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  padding: 1rem;
+  background: var(--surface);
+}
+
+.admin-sidebar--desktop {
+  display: block;
+}
+
+.admin-sidebar-title {
+  font-weight: 700;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.admin-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-nav-link {
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.9rem;
+  background: transparent;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+.admin-nav-link:hover {
+  text-decoration: none;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.admin-nav-link--active {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--accent);
+}
+
+.admin-shell-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0.65rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.admin-topbar-spacer {
+  flex: 1;
+}
+
+.admin-menu-btn {
+  display: none;
+}
+
+.admin-content {
+  padding: 1.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-drawer-root {
+  display: none;
+}
+
+.admin-table-wrap {
+  padding: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-split {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.admin-split > * {
+  min-width: 0;
+}
+
+.admin-inquiry-split {
+  gap: 1rem;
+  flex-wrap: nowrap;
+  margin-bottom: 0.75rem;
+}
+
+.admin-inquiry-main {
+  flex: 1 1 60%;
+}
+
+.admin-inquiry-side {
+  flex: 1 1 40%;
+}
+
+.admin-form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1rem;
+}
+
+.admin-user-form {
+  max-width: 720px;
+  flex: 1 1 420px;
+}
+
+.admin-user-side {
+  max-width: 360px;
+  flex: 0 1 320px;
 }
 
 .checkbox-tile {
@@ -1184,6 +1422,7 @@ table.admin-table {
 .lp-video-wrapper {
   position: relative;
   width: 325px;
+  max-width: 100%;
   min-height: 560px;
   border-radius: 12px;
   overflow: hidden;
@@ -1276,6 +1515,23 @@ table.admin-table {
   font-size: 0.95rem;
 }
 
+.lp-cta-phones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+
+.lp-cta-phones a {
+  color: rgba(231, 237, 244, 0.75);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.lp-cta-phones a:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+
 /* ── FOOTER ── */
 .lp-footer {
   background: var(--surface);
@@ -1332,7 +1588,78 @@ table.admin-table {
 }
 
 /* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .admin-sidebar--desktop {
+    display: none;
+  }
+
+  .admin-menu-btn {
+    display: inline-flex;
+  }
+
+  .admin-drawer-root {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+  }
+
+  .admin-drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: rgba(0, 0, 0, 0.55);
+    cursor: pointer;
+  }
+
+  .admin-sidebar--drawer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(280px, 86vw);
+    z-index: 1;
+    border-right: 1px solid var(--border);
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.35);
+    overflow-y: auto;
+    animation: admin-drawer-in 0.2s ease;
+  }
+
+  .admin-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .admin-drawer-header .admin-sidebar-title {
+    margin-bottom: 0;
+  }
+
+  .admin-drawer-close {
+    padding: 0.35rem 0.55rem;
+    min-width: 40px;
+  }
+}
+
+@keyframes admin-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 @media (max-width: 768px) {
+  .lp-nav-inner {
+    padding: 0.7rem 1rem;
+    gap: 0.75rem;
+  }
+
   .lp-nav-links {
     display: none;
   }
@@ -1341,12 +1668,120 @@ table.admin-table {
     display: none;
   }
 
+  .lp-container {
+    padding: 0 1rem;
+  }
+
+  .lp-section {
+    padding: 3rem 0;
+  }
+
   .lp-hero {
-    min-height: 70vh;
+    min-height: auto;
+  }
+
+  .lp-hero-content {
+    padding: 2.5rem 1rem 3rem;
+  }
+
+  .lp-hero-badge {
+    font-size: 0.7rem;
+    padding: 0.28rem 0.6rem;
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.4;
+    border-radius: 10px;
+  }
+
+  .lp-hero-title {
+    font-size: clamp(1.85rem, 9vw, 2.6rem);
+  }
+
+  .lp-hero-subtitle {
+    font-size: 0.98rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .lp-hero-actions {
+    width: 100%;
+  }
+
+  .lp-hero-actions .enroll-wrap,
+  .lp-hero-actions .btn {
+    width: 100%;
+  }
+
+  .lp-hero-phones {
+    gap: 0.75rem;
+  }
+
+  .lp-hero-phones a {
+    font-size: 0.95rem;
   }
 
   .lp-step-arrow {
     display: none;
+  }
+
+  .lp-steps {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lp-step {
+    max-width: none;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .lp-subjects-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .lp-features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-timings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-timing-time {
+    font-size: 1.05rem;
+  }
+
+  .lp-videos-grid {
+    gap: 1.25rem;
+  }
+
+  .lp-video-item {
+    width: 100%;
+    max-width: 325px;
+  }
+
+  .lp-video-wrapper {
+    width: 100%;
+    max-width: 325px;
+    min-height: 0;
+    aspect-ratio: 325 / 560;
+  }
+
+  .lp-video-wrapper iframe {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .lp-tiktok-cta {
+    margin-top: 1.75rem;
+  }
+
+  .lp-tiktok-btn {
+    width: 100%;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.35;
+    padding: 0.85rem 1rem;
   }
 
   .lp-extra-inner {
@@ -1364,36 +1799,218 @@ table.admin-table {
     min-width: 120px;
   }
 
+  .lp-contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-cta-banner {
+    padding: 2.5rem 0;
+  }
+
   .lp-cta-inner {
     flex-direction: column;
     text-align: center;
+    align-items: center;
+  }
+
+  .lp-cta-inner .btn {
+    width: 100%;
+  }
+
+  .lp-footer-links {
+    gap: 0.85rem 1.25rem;
   }
 
   .lp-programs-grid {
     grid-template-columns: 1fr;
   }
 
-  .enroll-container{
-    transform: scale(0.9);
-    background-color: transparent;
-    border: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    align-items: center;
+  .enroll-wrap {
+    width: 100%;
+  }
+
+  .enroll-container {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .enroll-select {
+    flex: 1 1 100%;
+    width: 100%;
+    height: 42px;
+    font-size: 16px;
+  }
+
+  .enroll-go-btn {
+    flex: 1 1 100%;
+    width: 100%;
+    height: 44px;
+    font-size: 15px;
+  }
+
+  .enroll-error {
+    position: static;
+    white-space: normal;
+  }
+
+  .lp-cta-phones {
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* Public forms */
+  .public-header-inner {
+    padding: 0.75rem 1rem;
+  }
+
+  .public-main {
+    padding: 1rem 1rem 2.5rem;
+  }
+
+  .public-brand {
+    font-size: 0.9rem;
+  }
+
+  .public-admin-link {
+    flex-shrink: 0;
+  }
+
+  .tuition-hero-title {
+    font-size: 1.25rem;
+  }
+
+  .panel {
+    padding: 0.9rem 1rem;
+  }
+
+  .checkbox-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .checkbox-tile {
+    min-height: 42px;
+    padding: 0.45rem 0.5rem;
+  }
+
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .success-modal-card {
+    padding: 2rem 1.25rem 1.5rem;
+    max-width: 92vw;
+  }
+
+  /* Admin */
+  .admin-topbar {
+    padding: 0.55rem 0.85rem;
+  }
+
+  .admin-content {
+    padding: 0.9rem;
+  }
+
+  .page-title {
+    font-size: 1.15rem;
+  }
+
+  .admin-user-form,
+  .admin-user-side {
+    max-width: none;
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .admin-list-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-list-toolbar__search {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .admin-filter-panel {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .admin-filter-panel .field {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .admin-filter-panel__range {
+    flex: 1 1 100%;
+  }
+
+  .admin-list-toolbar__actions {
+    width: 100%;
+  }
+
+  .admin-list-toolbar__actions .btn,
+  .admin-list-toolbar__actions a.btn {
+    flex: 1 1 auto;
     justify-content: center;
   }
 
-  .enroll-container .form-select {
+  .admin-table {
+    font-size: 0.82rem;
+    min-width: 560px;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 0.5rem 0.55rem;
+  }
+
+  .admin-split {
+    flex-direction: column;
+  }
+
+  .admin-inquiry-split {
+    flex-wrap: wrap;
+  }
+
+  .admin-inquiry-main,
+  .admin-inquiry-side {
+    flex: 1 1 100%;
     width: 100%;
-    height: 38px;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 14px;
-    font-weight: 500;
-    color: #0f172a;
-    cursor: pointer;
-    padding-right: 20px;
+  }
+
+  .admin-form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .pagination-bar {
+    justify-content: space-between;
+  }
+
+  .pagination-bar .btn {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .lp-subjects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-logo-img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .public-brand-text {
+    white-space: normal;
   }
 }
