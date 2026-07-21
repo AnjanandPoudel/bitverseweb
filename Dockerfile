@@ -4,7 +4,9 @@ FROM node:22-alpine AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+# Coolify injects NODE_ENV=production during build, which would omit
+# typescript (devDependency). --include=dev forces it in anyway.
+RUN npm ci --include=dev
 
 # ---- build ----
 FROM node:22-alpine AS builder
