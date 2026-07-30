@@ -132,6 +132,50 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  const scrollIntoViewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) {
+      return;
+    }
+
+    const updateKeyboardInset = (): void => {
+      const inset = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+      setKeyboardInset(inset);
+    };
+
+    viewport.addEventListener('resize', updateKeyboardInset);
+    viewport.addEventListener('scroll', updateKeyboardInset);
+    updateKeyboardInset();
+
+    return () => {
+      viewport.removeEventListener('resize', updateKeyboardInset);
+      viewport.removeEventListener('scroll', updateKeyboardInset);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (scrollIntoViewTimeoutRef.current !== null) {
+        clearTimeout(scrollIntoViewTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const scrollFocusedFieldAboveKeyboard = (target: EventTarget | null): void => {
+    if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement)) {
+      return;
+    }
+    if (scrollIntoViewTimeoutRef.current !== null) {
+      clearTimeout(scrollIntoViewTimeoutRef.current);
+    }
+    // Wait for the soft keyboard / visualViewport to settle before scrolling.
+    scrollIntoViewTimeoutRef.current = setTimeout(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 350);
+  };
 
   const onSubmit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
@@ -194,7 +238,12 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
   return (
     <>
       {showSuccess ? <SuccessModal onClose={() => setShowSuccess(false)} /> : null}
-    <form className="panel tuition-form" onSubmit={(event) => void onSubmit(event)}>
+    <form
+      className="panel tuition-form"
+      style={keyboardInset > 0 ? { paddingBottom: keyboardInset + 32 } : undefined}
+      onFocusCapture={(event) => scrollFocusedFieldAboveKeyboard(event.target)}
+      onSubmit={(event) => void onSubmit(event)}
+    >
       <h2 className="tuition-form-title">Request information</h2>
       <p className="meta tuition-form-lead">Fill this form and we will contact you shortly.</p>
       {error ? <div className="error-banner">{error}</div> : null}
@@ -312,6 +361,20 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
             />
       
       </div>
+      <div className="field tuition-messenger-field">
+        <label htmlFor="messenger">WhatsApp / Viber number</label>
+        <input
+          id="messenger"
+          value={messengerNumber}
+          onChange={(event) => setMessengerNumber(event.target.value)}
+          required
+          minLength={6}
+          maxLength={80}
+          inputMode="tel"
+          autoComplete="tel"
+          type="tel"
+        />
+      </div>
       <div className="field">
         <span className="meta tuition-field-heading">Available days · उपलब्ध दिनहरू</span>
         <div className="checkbox-grid">
@@ -326,19 +389,6 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
             </label>
           ))}
         </div>
-      </div>
-      <div className="field">
-        <label htmlFor="messenger">WhatsApp / Viber number</label>
-        <input
-          id="messenger"
-          value={messengerNumber}
-          onChange={(event) => setMessengerNumber(event.target.value)}
-          required
-          minLength={6}
-          maxLength={80}
-          inputMode="tel"
-          autoComplete="tel"
-        />
       </div>
       <button type="submit" className="btn btn-primary" disabled={loading}>
         {loading ? 'Sending…' : 'Submit'}
