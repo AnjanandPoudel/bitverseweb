@@ -2,7 +2,10 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { ApiCallError } from '@/lib/api';
-import { resolveIanaTimeZoneForCountrySlug } from '@/lib/country-tuition-timezones';
+import {
+  isMultiZoneCountrySlug,
+  resolveIanaTimeZoneForCountrySlug,
+} from '@/lib/country-tuition-timezones';
 import {
   submitTuitionInquiry,
   TUITION_DAY_OPTIONS,
@@ -96,9 +99,12 @@ export interface ITuitionInquiryFormProps {
 
 export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): ReactElement {
   const normalizedCountrySlug = countrySlug.trim().toLowerCase();
-  const { ianaTimeZone, slugWasRecognized } = useMemo(
-    () => resolveIanaTimeZoneForCountrySlug(normalizedCountrySlug),
-    [normalizedCountrySlug],
+  const [city, setCity] = useState('');
+  const multiZoneCountry = isMultiZoneCountrySlug(normalizedCountrySlug);
+
+  const { ianaTimeZone, slugWasRecognized, cityMatched } = useMemo(
+    () => resolveIanaTimeZoneForCountrySlug(normalizedCountrySlug, city),
+    [normalizedCountrySlug, city],
   );
 
   const timeZoneLabel = useMemo((): string => {
@@ -130,6 +136,10 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
   const onSubmit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
     setError(null);
+    if (city.trim().length === 0) {
+      setError('Enter your city or area so we can use the correct time zone.');
+      return;
+    }
     if (subjects.length === 0) {
       setError('Select at least one subject.');
       return;
@@ -143,7 +153,6 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
       return;
     }
     if (preferredDate.trim().length === 0) {
-      alert('preferredDate: ' + preferredDate);
       setError('Choose a preferred date and time for your first session.');
       return;
     }
@@ -159,6 +168,7 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
         subjectsOther: subjects.includes('Other') ? subjectsOther.trim() : undefined,
         ianaTimeZone,
         countrySlug: normalizedCountrySlug,
+        city: city.trim(),
         preferredTime: preferredDate.trim(),
         availableDays,
         messengerNumber: messengerNumber.trim(),
@@ -168,6 +178,7 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
       setStudentFullNames('');
       setStudentAge('');
       setStudentClass('');
+      setCity('');
       setSubjects([]);
       setSubjectsOther('');
       setPreferredDate('');
@@ -232,6 +243,24 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
         />
       </div>
       <div className="field">
+        <label htmlFor="tuition-city">City / area · शहर</label>
+        <input
+          id="tuition-city"
+          value={city}
+          onChange={(event) => setCity(event.target.value)}
+          required
+          minLength={1}
+          maxLength={120}
+          placeholder={multiZoneCountry ? 'e.g. Vancouver, Perth, Los Angeles' : 'e.g. Tokyo, Kathmandu'}
+          autoComplete="address-level2"
+        />
+        {multiZoneCountry ? (
+          <p className="meta" style={{ margin: '4px 0 0', fontSize: '0.78rem' }}>
+            This country has several time zones — your city helps us schedule in the right local time.
+          </p>
+        ) : null}
+      </div>
+      <div className="field">
         <span className="meta tuition-field-heading">Subjects needed · चाहिएको विषयहरू</span>
         <div className="checkbox-grid">
           {TUITION_SUBJECT_OPTIONS.map((subject) => (
@@ -263,10 +292,13 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
         <span className="meta tuition-field-heading">
           Preferred first session (local time) · मिति र स्थानीय समय
         </span>
-          Times are interpreted in <strong>{timeZoneLabel}</strong> ({ianaTimeZone}) for this country page.
-          {!slugWasRecognized ? (
-            <span> We could not match this URL to a known region; if the time zone is wrong, mention your city in the
-            message to staff when they contact you.</span>
+          Times are interpreted in <strong>{timeZoneLabel}</strong> ({ianaTimeZone})
+          {cityMatched ? ' based on your city' : ' for this country page'}.
+          {!slugWasRecognized || (multiZoneCountry && city.trim().length > 0 && !cityMatched) ? (
+            <span>
+              {' '}
+              If the time zone looks wrong, include a clearer city name or tell staff when they contact you.
+            </span>
           ) : null}
         </p>
             <label htmlFor="preferred-date"> Preferred Time </label>

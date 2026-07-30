@@ -75,9 +75,7 @@ export default function LandingPage(): React.ReactElement {
             Bitverse Academy brings experienced Nepali teachers directly to students living abroad — through live, one-to-one and small-batch online classes. Flexible timings, weekly reports, and a free 3-day trial.
           </p>
           <div className="lp-hero-actions">
-            <div className="btn btn-primary">
-              <EnrollDropdown text="Start Free Trial" />
-            </div>
+            <EnrollDropdown text="Start Free Trial" />
           </div>
           <div className="lp-hero-phones">
             <a href="tel:9846940545">📞 9846940545</a>

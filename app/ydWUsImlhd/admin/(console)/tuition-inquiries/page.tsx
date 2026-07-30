@@ -14,6 +14,8 @@ interface ITuitionInquiryRow {
   _id?: string;
   parentFullName?: string;
   messengerNumber?: string;
+  countrySlug?: string;
+  city?: string;
   status?: string;
   createdAt?: string;
 }
@@ -117,6 +119,7 @@ export default function TuitionInquiriesListPage(): React.ReactElement {
           <thead>
             <tr>
               <th>Parent</th>
+              <th>Location</th>
               <th>Messenger</th>
               <th>Status</th>
               <th>Submitted</th>
@@ -126,14 +129,14 @@ export default function TuitionInquiriesListPage(): React.ReactElement {
           <tbody>
             {loading && items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="meta">
+                <td colSpan={6} className="meta">
                   Loading…
                 </td>
               </tr>
             ) : null}
             {!loading && items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="meta">
+                <td colSpan={6} className="meta">
                   No inquiries found.
                 </td>
               </tr>
@@ -146,9 +149,14 @@ export default function TuitionInquiriesListPage(): React.ReactElement {
                   ? created.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
                   : '—';
               const statusKey = typeof row.status === 'string' ? row.status : 'new_request';
+              const locationParts = [row.city, row.countrySlug].filter(
+                (part): part is string => typeof part === 'string' && part.trim().length > 0,
+              );
+              const locationLabel = locationParts.length > 0 ? locationParts.join(', ') : '—';
               return (
                 <tr key={id || row.parentFullName}>
                   <td>{row.parentFullName}</td>
+                  <td className="meta">{locationLabel}</td>
                   <td>{row.messengerNumber}</td>
                   <td>
                     <span

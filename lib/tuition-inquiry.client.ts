@@ -28,6 +28,8 @@ export interface ITuitionInquirySubmitBody {
   ianaTimeZone: string;
   /** Lowercase slug from the country landing URL. */
   countrySlug: string;
+  /** City or area — important when the country spans multiple time zones. */
+  city: string;
   availableDays: TTuitionDayOption[];
   messengerNumber: string;
 }

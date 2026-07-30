@@ -35,6 +35,7 @@ interface ITuitionInquiryDetail {
   subjectsOther?: string;
   ianaTimeZone?: string;
   countrySlug?: string;
+  city?: string;
   preferredTime?: string;
   actualTime?: string;
   availableDays?: string[];
@@ -135,6 +136,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
   const [subjectsOther, setSubjectsOther] = useState('');
   const [ianaTimeZone, setIanaTimeZone] = useState('');
   const [countrySlug, setCountrySlug] = useState('');
+  const [city, setCity] = useState('');
   const [preferredTime, setPreferredTime] = useState('');
   const [actualTime, setActualTime] = useState('');
   const [availableDays, setAvailableDays] = useState<string[]>([]);
@@ -194,6 +196,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
       setSubjectsOther(data.subjectsOther ?? '');
       setIanaTimeZone(data.ianaTimeZone ?? '');
       setCountrySlug(data.countrySlug ?? '');
+      setCity(data.city ?? '');
       setPreferredTime(data.preferredTime ?? '');
       setActualTime(toDatetimeLocal(data.actualTime));
       setAvailableDays(data.availableDays ?? []);
@@ -277,6 +280,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
       subjectsOther !== (inquiry.subjectsOther ?? '') ||
       ianaTimeZone !== (inquiry.ianaTimeZone ?? '') ||
       countrySlug !== (inquiry.countrySlug ?? '') ||
+      city !== (inquiry.city ?? '') ||
       preferredTime !== (inquiry.preferredTime ?? '') ||
       actualTime !== toDatetimeLocal(inquiry.actualTime) ||
       !arraysEqual(availableDays, inquiry.availableDays ?? []) ||
@@ -304,6 +308,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
     subjectsOther,
     ianaTimeZone,
     countrySlug,
+    city,
     preferredTime,
     actualTime,
     availableDays,
@@ -376,6 +381,7 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
         subjectsOther: subjectsOther || null,
         ianaTimeZone: ianaTimeZone || undefined,
         countrySlug: countrySlug || undefined,
+        city: city.trim().length > 0 ? city.trim() : null,
         preferredTime: preferredTime || null,
         actualTime: actualTime ? new Date(actualTime).toISOString() : null,
         availableDays: availableDays.length > 0 ? availableDays : undefined,
@@ -636,6 +642,17 @@ export default function TuitionInquiryDetailPage(): React.ReactElement {
                   id="inq-country"
                   value={countrySlug}
                   onChange={(e) => setCountrySlug(e.target.value)}
+                  maxLength={120}
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="inq-city">City / area</label>
+                <input
+                  id="inq-city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="e.g. Tokyo, Vancouver"
                   maxLength={120}
                 />
               </div>
