@@ -549,10 +549,6 @@ table.admin-table {
   margin-top: 0.35rem;
 }
 
-.tuition-form {
-  transition: padding-bottom 0.2s ease;
-}
-
 .tuition-form .field input,
 .tuition-form .field textarea {
   scroll-margin-bottom: 40vh;

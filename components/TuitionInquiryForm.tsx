@@ -132,29 +132,15 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [keyboardInset, setKeyboardInset] = useState(0);
+  const [errorRevision, setErrorRevision] = useState(0);
+  const errorBannerRef = useRef<HTMLDivElement | null>(null);
   const scrollIntoViewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!viewport) {
-      return;
-    }
-
-    const updateKeyboardInset = (): void => {
-      const inset = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
-      setKeyboardInset(inset);
-    };
-
-    viewport.addEventListener('resize', updateKeyboardInset);
-    viewport.addEventListener('scroll', updateKeyboardInset);
-    updateKeyboardInset();
-
-    return () => {
-      viewport.removeEventListener('resize', updateKeyboardInset);
-      viewport.removeEventListener('scroll', updateKeyboardInset);
-    };
-  }, []);
+  const showError = (message: string): void => {
+    setError(message);
+    // Bump even when the message is unchanged so the banner is scrolled back into view on every failed tap.
+    setErrorRevision((previous) => previous + 1);
+  };
 
   useEffect(() => {
     return () => {
@@ -164,40 +150,69 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
     };
   }, []);
 
+  // The banner sits at the top of a long form; make sure the user actually sees why submit did nothing.
+  useEffect(() => {
+    if (errorRevision > 0) {
+      errorBannerRef.current?.scrollIntoView({ block: 'center' });
+    }
+  }, [errorRevision]);
+
+  /*
+   * Only nudge a text field into view when the soft keyboard really covers it (some Android browsers).
+   * iOS Safari already pans the visual viewport to the focused field; resizing the form or scrolling
+   * on every focus there moved the Submit button mid-tap, so taps landed on nothing.
+   */
   const scrollFocusedFieldAboveKeyboard = (target: EventTarget | null): void => {
-    if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement)) {
+    const isTextField =
+      target instanceof HTMLTextAreaElement ||
+      (target instanceof HTMLInputElement && target.type !== 'checkbox' && target.type !== 'radio');
+    if (!isTextField) {
       return;
     }
     if (scrollIntoViewTimeoutRef.current !== null) {
       clearTimeout(scrollIntoViewTimeoutRef.current);
     }
-    // Wait for the soft keyboard / visualViewport to settle before scrolling.
+    // Wait for the soft keyboard / visualViewport to settle before checking.
     scrollIntoViewTimeoutRef.current = setTimeout(() => {
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      scrollIntoViewTimeoutRef.current = null;
+      const viewport = window.visualViewport;
+      if (!viewport || document.activeElement !== target) {
+        return;
+      }
+      const rect = target.getBoundingClientRect();
+      const visibleTop = viewport.offsetTop;
+      const visibleBottom = viewport.offsetTop + viewport.height;
+      if (rect.top >= visibleTop && rect.bottom <= visibleBottom) {
+        return;
+      }
+      target.scrollIntoView({ block: 'center' });
     }, 350);
   };
 
   const onSubmit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
+    if (loading) {
+      return;
+    }
     setError(null);
     if (city.trim().length === 0) {
-      setError('Enter your city or area so we can use the correct time zone.');
+      showError('Enter your city or area so we can use the correct time zone.');
       return;
     }
     if (subjects.length === 0) {
-      setError('Select at least one subject.');
+      showError('Select at least one subject.');
       return;
     }
     if (availableDays.length === 0) {
-      setError('Select at least one available day.');
+      showError('Select at least one available day.');
       return;
     }
     if (subjects.includes('Other') && subjectsOther.trim().length === 0) {
-      setError('Please describe the other subjects you need.');
+      showError('Please describe the other subjects you need.');
       return;
     }
     if (preferredDate.trim().length === 0) {
-      setError('Choose a preferred date and time for your first session.');
+      showError('Choose a preferred date and time for your first session.');
       return;
     }
 
@@ -229,7 +244,7 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
       setAvailableDays([]);
       setMessengerNumber('');
     } catch (err: unknown) {
-      setError(err instanceof ApiCallError ? err.message : 'Something went wrong. Please try again.');
+      showError(err instanceof ApiCallError ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -240,13 +255,16 @@ export function TuitionInquiryForm({ countrySlug }: ITuitionInquiryFormProps): R
       {showSuccess ? <SuccessModal onClose={() => setShowSuccess(false)} /> : null}
     <form
       className="panel tuition-form"
-      style={keyboardInset > 0 ? { paddingBottom: keyboardInset + 32 } : undefined}
       onFocusCapture={(event) => scrollFocusedFieldAboveKeyboard(event.target)}
       onSubmit={(event) => void onSubmit(event)}
     >
       <h2 className="tuition-form-title">Request information</h2>
       <p className="meta tuition-form-lead">Fill this form and we will contact you shortly.</p>
-      {error ? <div className="error-banner">{error}</div> : null}
+      {error ? (
+        <div ref={errorBannerRef} className="error-banner" role="alert">
+          {error}
+        </div>
+      ) : null}
       <div className="field">
         <label htmlFor="parent-full-name">Full name of parent(s)</label>
         <input
