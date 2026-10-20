@@ -40,7 +40,7 @@ export default function LoginPage(): React.ReactElement {
 
   useEffect(() => {
     if (hydrated && accessToken) {
-      router.replace(adminRoute('/users'));
+      router.replace(adminRoute('/tuition-inquiries'));
     }
   }, [accessToken, hydrated, router]);
 
@@ -67,7 +67,7 @@ export default function LoginPage(): React.ReactElement {
         refreshToken: payload.refreshToken,
         user: mapAdminSessionUserFromApi(payload.user),
       });
-      router.replace(adminRoute('/users'));
+      router.replace(adminRoute('/tuition-inquiries'));
     } catch (err: unknown) {
       const message = err instanceof ApiCallError ? err.message : 'Login failed.';
       setError(message);
