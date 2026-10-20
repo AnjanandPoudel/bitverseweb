@@ -9,6 +9,7 @@ import { formatRoleLabel, roleObjectId, userDocumentId } from '@/lib/format-user
 import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 import { TeacherSwotPanel } from '@/components/TeacherSwotPanel';
+import { AssignmentsPanel } from '@/components/AssignmentsPanel';
 
 interface IUserDetail {
   _id?: unknown;
@@ -672,6 +673,7 @@ export default function UserDetailPage(): React.ReactElement {
             </div>
           ) : null}
           <TeacherSwotPanel userId={userId} isTeacher={isTeacher} />
+          <AssignmentsPanel userId={userId} role={formatRoleLabel(user.roleId)} />
         </div>
       ) : null}
     </div>
