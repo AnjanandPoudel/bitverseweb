@@ -1,10 +1,15 @@
 /** Shapes of the backend assignment DTOs the admin console reads (src/modules/assignment/assignment.types.ts). */
 
-export type AssignmentStudentStatus = 'pending' | 'submitted' | 'reviewed';
-export type AssignmentSubmissionMode = 'per_page' | 'per_assignment';
+export type AssignmentStudentStatus = 'pending' | 'submitted' | 'redo_requested' | 'reviewed';
+export type AssignmentSubmissionStatus = 'submitted' | 'redo_requested' | 'reviewed';
 
-export interface IAssignmentImage {
+/** A homework photo or PDF with a signed URL. */
+export interface IAssignmentFile {
   fileId: string;
+  category: 'image' | 'document';
+  mimeType: string;
+  name: string;
+  size: number;
   width: number | null;
   height: number | null;
   url: string;
@@ -18,9 +23,7 @@ export interface IAssignmentUser {
 
 export interface IAssignmentProgress {
   status: AssignmentStudentStatus;
-  submissionCount: number;
-  feedbackCount: number;
-  answeredPageCount: number;
+  submissionId: string | null;
   isLate: boolean;
   lastSubmittedAt: string | null;
   assignedAt: string;
@@ -36,21 +39,11 @@ export interface IAssignmentRow {
   assignedDate: string;
   deadline: string;
   isOverdue: boolean;
-  submissionMode: AssignmentSubmissionMode;
-  pageCount: number;
+  attachments: IAssignmentFile[];
   recipientCount: number;
   submissionCount: number;
-  coverImage: IAssignmentImage | null;
   progress: IAssignmentProgress | null;
   createdAt: string;
-}
-
-export interface IAssignmentPageRow {
-  id: string;
-  pageNumber: number;
-  description: string;
-  image: IAssignmentImage | null;
-  submissionCount: number;
 }
 
 export interface IAssignmentFeedbackRow {
@@ -58,12 +51,12 @@ export interface IAssignmentFeedbackRow {
   submissionId: string;
   assignmentId: string;
   assignmentTitle: string;
-  pageNumber: number | null;
-  rating: number;
+  outcome: 'reviewed' | 'redo';
+  rating: number | null;
   comment: string;
   teacher: IAssignmentUser | null;
   student: IAssignmentUser | null;
-  thumbnail: IAssignmentImage | null;
+  thumbnail: IAssignmentFile | null;
   updatedAt: string;
 }
 
@@ -71,13 +64,15 @@ export interface IAssignmentSubmissionRow {
   id: string;
   assignmentId: string;
   assignmentTitle: string;
-  pageNumber: number | null;
   student: IAssignmentUser | null;
   teacher: IAssignmentUser | null;
-  images: IAssignmentImage[];
+  files: IAssignmentFile[];
   note: string;
+  status: AssignmentSubmissionStatus;
   isLate: boolean;
-  hasFeedback: boolean;
+  revisionCount: number;
+  submittedAt: string;
+  lastSubmittedAt: string;
   feedback: IAssignmentFeedbackRow | null;
   createdAt: string;
 }
@@ -109,18 +104,26 @@ export function formatHomeworkDate(iso: string | null | undefined, withTime = fa
   });
 }
 
-export function stars(rating: number): string {
+export function stars(rating: number | null): string {
+  if (!rating) {
+    return '—';
+  }
   const clamped = Math.max(0, Math.min(5, Math.round(rating)));
   return `${'★'.repeat(clamped)}${'☆'.repeat(5 - clamped)}`;
 }
 
+const STUDENT_STATUS_LABELS: Record<AssignmentStudentStatus, string> = {
+  pending: 'Not submitted',
+  submitted: 'Submitted',
+  redo_requested: 'Redo requested',
+  reviewed: 'Reviewed',
+};
+
 export function studentStatusLabel(status: AssignmentStudentStatus): string {
-  if (status === 'reviewed') {
-    return 'Reviewed';
-  }
-  return status === 'submitted' ? 'Submitted' : 'Not submitted';
+  return STUDENT_STATUS_LABELS[status] ?? status;
 }
 
-export function submissionModeLabel(mode: AssignmentSubmissionMode): string {
-  return mode === 'per_page' ? 'Per page' : 'Whole assignment';
+/** First image among the files, for table thumbnails. */
+export function firstImageUrl(files: IAssignmentFile[] | undefined): string | undefined {
+  return files?.find((file) => file.category === 'image')?.url;
 }

@@ -11,8 +11,7 @@ import {
   formatHomeworkDate,
   stars,
   studentStatusLabel,
-  submissionModeLabel,
-  type IAssignmentPageRow,
+  type IAssignmentFile,
   type IAssignmentRecipientRow,
   type IAssignmentRow,
   type IAssignmentSubmissionRow,
@@ -21,7 +20,6 @@ import {
 import { adminRoute } from '@/lib/routes';
 import { useAdminAuthStore } from '@/stores/admin-auth.store';
 
-const PAGES_PAGE_SIZE = 12;
 const LIST_PAGE_SIZE = 10;
 
 interface IPaged<T> {
@@ -70,7 +68,7 @@ function usePagedList<T>(path: string | null, limit: number, studentId?: string)
   return { items, meta, loading, error, page, setPage };
 }
 
-const pageImageStyle: React.CSSProperties = {
+const fileImageStyle: React.CSSProperties = {
   width: '100%',
   aspectRatio: '3 / 4',
   objectFit: 'contain',
@@ -99,7 +97,6 @@ export default function AdminAssignmentDetailPage(): React.ReactElement {
   const [studentFilter, setStudentFilter] = useState<{ id: string; name: string } | null>(null);
 
   const base = allowed && assignmentId ? `/assignments/${assignmentId}` : null;
-  const pages = usePagedList<IAssignmentPageRow>(base ? `${base}/pages` : null, PAGES_PAGE_SIZE);
   const students = usePagedList<IAssignmentRecipientRow>(base ? `${base}/students` : null, LIST_PAGE_SIZE);
   const submissions = usePagedList<IAssignmentSubmissionRow>(base ? `${base}/submissions` : null, LIST_PAGE_SIZE, studentFilter?.id);
   const { setPage: setSubmissionsPage } = submissions;
@@ -157,8 +154,7 @@ export default function AdminAssignmentDetailPage(): React.ReactElement {
               {formatHomeworkDate(assignment.deadline, true)}{' '}
               {assignment.isOverdue ? <span className="badge badge-off">Past due</span> : null}
             </Info>
-            <Info label="Submission type">{submissionModeLabel(assignment.submissionMode)}</Info>
-            <Info label="Pages">{assignment.pageCount}</Info>
+            <Info label="Files">{assignment.attachments.length}</Info>
             <Info label="Students">{assignment.recipientCount}</Info>
             <Info label="Submissions">{assignment.submissionCount}</Info>
           </div>
@@ -167,28 +163,9 @@ export default function AdminAssignmentDetailPage(): React.ReactElement {
       ) : null}
 
       <div className="panel" style={{ marginBottom: '1rem' }}>
-        <h2>Pages</h2>
-        {pages.error ? <div className="error-banner">{pages.error}</div> : null}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
-          {pages.items.map((p) => (
-            <figure key={p.id} style={{ margin: 0 }}>
-              {p.image ? (
-                <a href={p.image.url} target="_blank" rel="noreferrer">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- signed storage URL */}
-                  <img src={p.image.url} alt={`Page ${p.pageNumber}`} style={pageImageStyle} />
-                </a>
-              ) : (
-                <div style={pageImageStyle} />
-              )}
-              <figcaption className="meta" style={{ marginTop: 6 }}>
-                <strong>Page {p.pageNumber}</strong> · {p.submissionCount} answers
-                {p.description ? <div style={{ color: 'var(--text)' }}>{p.description}</div> : null}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-        {!pages.loading && pages.items.length === 0 ? <p className="meta">No pages.</p> : null}
-        <PaginationBar page={pages.page} totalPages={pages.meta?.totalPages ?? 1} disabled={pages.loading} onPageChange={pages.setPage} />
+        <h2>Homework files</h2>
+        <FileGrid files={assignment?.attachments ?? []} />
+        {assignment && assignment.attachments.length === 0 ? <p className="meta">No files — instructions only.</p> : null}
       </div>
 
       <div className="admin-split" style={{ alignItems: 'stretch' }}>
@@ -229,7 +206,7 @@ export default function AdminAssignmentDetailPage(): React.ReactElement {
                         </span>
                         {r.progress.isLate ? <div className="meta">Late</div> : null}
                       </td>
-                      <td>{r.progress.submissionCount}</td>
+                      <td>{r.progress.lastSubmittedAt ? formatHomeworkDate(r.progress.lastSubmittedAt, true) : '—'}</td>
                     </tr>
                   ))
                 )}
@@ -253,47 +230,45 @@ export default function AdminAssignmentDetailPage(): React.ReactElement {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Photos</th>
+                  <th>Files</th>
                   <th>Student</th>
-                  <th>Page</th>
-                  <th>Submitted</th>
-                  <th>Feedback</th>
+                  <th>Sent</th>
+                  <th>Review</th>
                 </tr>
               </thead>
               <tbody>
                 {submissions.items.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="meta">{submissions.loading ? 'Loading…' : 'No submissions yet.'}</td>
+                    <td colSpan={4} className="meta">{submissions.loading ? 'Loading…' : 'No submissions yet.'}</td>
                   </tr>
                 ) : (
                   submissions.items.map((s) => (
                     <tr key={s.id}>
                       <td>
                         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', maxWidth: 200 }}>
-                          {s.images.map((img) => (
-                            <a key={img.fileId} href={img.url} target="_blank" rel="noreferrer">
-                              {/* eslint-disable-next-line @next/next/no-img-element -- signed storage URL */}
-                              <img src={img.url} alt="Answer photo" style={thumbStyle} />
+                          {s.files.map((file) => (
+                            <a key={file.fileId} href={file.url} target="_blank" rel="noreferrer" title={file.name}>
+                              {file.category === 'image' ? (
+                                /* eslint-disable-next-line @next/next/no-img-element -- signed storage URL */
+                                <img src={file.url} alt="Answer photo" style={thumbStyle} />
+                              ) : (
+                                <span className="badge">PDF</span>
+                              )}
                             </a>
                           ))}
                         </div>
                         {s.note ? <div className="meta" style={{ marginTop: 4 }}>{s.note}</div> : null}
                       </td>
                       <td>{s.student?.name ?? '—'}</td>
-                      <td>{s.pageNumber ? `Page ${s.pageNumber}` : 'All'}</td>
                       <td>
-                        {formatHomeworkDate(s.createdAt, true)}
+                        {formatHomeworkDate(s.lastSubmittedAt, true)}
+                        {s.revisionCount > 0 ? <div className="meta">Edited {s.revisionCount}×</div> : null}
                         {s.isLate ? <div><span className="badge badge-off">Late</span></div> : null}
                       </td>
                       <td style={{ maxWidth: 260 }}>
-                        {s.feedback ? (
-                          <>
-                            <div style={{ color: '#f59e0b', whiteSpace: 'nowrap' }}>{stars(s.feedback.rating)}</div>
-                            {s.feedback.comment ? <div style={{ whiteSpace: 'pre-wrap' }}>{s.feedback.comment}</div> : null}
-                          </>
-                        ) : (
-                          <span className="meta">Awaiting feedback</span>
-                        )}
+                        <span className={`badge ${s.status === 'reviewed' ? 'badge-ok' : 'badge-off'}`}>{studentStatusLabel(s.status)}</span>
+                        {s.feedback?.rating ? <div style={{ color: '#f59e0b', whiteSpace: 'nowrap' }}>{stars(s.feedback.rating)}</div> : null}
+                        {s.feedback?.comment ? <div style={{ whiteSpace: 'pre-wrap' }}>{s.feedback.comment}</div> : null}
                       </td>
                     </tr>
                   ))
@@ -309,6 +284,27 @@ export default function AdminAssignmentDetailPage(): React.ReactElement {
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Homework photos as a grid (click to open full size) and PDFs as links. */
+function FileGrid({ files }: { files: IAssignmentFile[] }): React.ReactElement {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+      {files.map((file) => (
+        <figure key={file.fileId} style={{ margin: 0 }}>
+          <a href={file.url} target="_blank" rel="noreferrer">
+            {file.category === 'image' ? (
+              /* eslint-disable-next-line @next/next/no-img-element -- signed storage URL */
+              <img src={file.url} alt={file.name} style={fileImageStyle} />
+            ) : (
+              <div style={{ ...fileImageStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>PDF</div>
+            )}
+          </a>
+          <figcaption className="meta" style={{ marginTop: 6 }}>{file.name}</figcaption>
+        </figure>
+      ))}
     </div>
   );
 }

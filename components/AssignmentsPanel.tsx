@@ -7,6 +7,7 @@ import { canAccessAdminPermission } from '@/lib/admin-access';
 import { ApiCallError, apiRequest, type IListMeta } from '@/lib/api';
 import {
   ASSIGNMENTS_VIEW_PERMISSION,
+  firstImageUrl,
   formatHomeworkDate,
   stars,
   studentStatusLabel,
@@ -149,7 +150,7 @@ export function AssignmentsPanel({ userId, role }: IAssignmentsPanelProps): Reac
                 <th>{isTeacher ? 'Class' : 'Teacher'}</th>
                 <th>Given</th>
                 <th>Deadline</th>
-                <th>Pages</th>
+                <th>Files</th>
                 <th>{isTeacher ? 'Submitted' : 'Status'}</th>
               </tr>
             </thead>
@@ -161,7 +162,7 @@ export function AssignmentsPanel({ userId, role }: IAssignmentsPanelProps): Reac
               ) : (
                 (items as IAssignmentRow[]).map((a) => (
                   <tr key={a.id}>
-                    <td><Thumb url={a.coverImage?.url} /></td>
+                    <td><Thumb url={firstImageUrl(a.attachments)} /></td>
                     <td>
                       <Link href={adminRoute(`/assignments/${a.id}`)}>{a.title}</Link>
                       {a.subject ? <div className="meta">{a.subject}</div> : null}
@@ -172,7 +173,7 @@ export function AssignmentsPanel({ userId, role }: IAssignmentsPanelProps): Reac
                       {formatHomeworkDate(a.deadline, true)}
                       {a.isOverdue ? <div><span className="badge badge-off">Past due</span></div> : null}
                     </td>
-                    <td>{a.pageCount}</td>
+                    <td>{a.attachments.length}</td>
                     <td>
                       {a.progress ? (
                         <>
@@ -200,8 +201,8 @@ export function AssignmentsPanel({ userId, role }: IAssignmentsPanelProps): Reac
                 <th>Assignment</th>
                 <th>{isTeacher ? 'Student' : 'Teacher'}</th>
                 <th>Submitted</th>
-                <th>Photos</th>
-                <th>Feedback</th>
+                <th>Files</th>
+                <th>Review</th>
               </tr>
             </thead>
             <tbody>
@@ -212,23 +213,21 @@ export function AssignmentsPanel({ userId, role }: IAssignmentsPanelProps): Reac
               ) : (
                 (items as IAssignmentSubmissionRow[]).map((s) => (
                   <tr key={s.id}>
-                    <td><Thumb url={s.images[0]?.url} /></td>
+                    <td><Thumb url={firstImageUrl(s.files)} /></td>
                     <td>
                       <Link href={adminRoute(`/assignments/${s.assignmentId}`)}>{s.assignmentTitle}</Link>
-                      <div className="meta">{s.pageNumber ? `Page ${s.pageNumber}` : 'Whole assignment'}</div>
+                      {s.revisionCount > 0 ? <div className="meta">Edited {s.revisionCount}×</div> : null}
                     </td>
                     <td>{isTeacher ? s.student?.name ?? '—' : s.teacher?.name ?? '—'}</td>
                     <td>
-                      {formatHomeworkDate(s.createdAt, true)}
+                      {formatHomeworkDate(s.lastSubmittedAt, true)}
                       {s.isLate ? <div><span className="badge badge-off">Late</span></div> : null}
                     </td>
-                    <td>{s.images.length}</td>
+                    <td>{s.files.length}</td>
                     <td>
-                      {s.feedback ? (
-                        <span title={s.feedback.comment} style={{ color: '#f59e0b' }}>{stars(s.feedback.rating)}</span>
-                      ) : (
-                        <span className="meta">Awaiting</span>
-                      )}
+                      <span className={`badge ${s.status === 'reviewed' ? 'badge-ok' : 'badge-off'}`} title={s.feedback?.comment}>
+                        {studentStatusLabel(s.status)}
+                      </span>
                     </td>
                   </tr>
                 ))
@@ -257,10 +256,10 @@ export function AssignmentsPanel({ userId, role }: IAssignmentsPanelProps): Reac
               ) : (
                 (items as IAssignmentFeedbackRow[]).map((f) => (
                   <tr key={f.id}>
-                    <td><Thumb url={f.thumbnail?.url} /></td>
+                    <td><Thumb url={f.thumbnail?.category === 'image' ? f.thumbnail.url : undefined} /></td>
                     <td>
                       <Link href={adminRoute(`/assignments/${f.assignmentId}`)}>{f.assignmentTitle}</Link>
-                      {f.pageNumber ? <div className="meta">Page {f.pageNumber}</div> : null}
+                      {f.outcome === 'redo' ? <div className="meta">Redo requested</div> : null}
                     </td>
                     <td>{isTeacher ? f.student?.name ?? '—' : f.teacher?.name ?? '—'}</td>
                     <td style={{ color: '#f59e0b', whiteSpace: 'nowrap' }}>{stars(f.rating)}</td>
